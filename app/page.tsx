@@ -174,7 +174,7 @@ function GatheringCard({ gathering, onUpdate }: { gathering: Gathering; onUpdate
             padding: '4px 10px', fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,.9)',
           }}>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="2.5"/></svg>
-            {court ? `${getDistanceKm ? '' : ''}${(gathering as any).distance ? `${(gathering as any).distance.toFixed(1)} km` : '— km'}` : '— km'}
+            {(gathering as any).distance ? `${(gathering as any).distance.toFixed(1)} km` : '— km'}
           </span>
         </div>
         {/* top-right: status badge */}
