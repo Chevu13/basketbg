@@ -113,7 +113,7 @@ export default function CourtsPage() {
         ) : (
           <div className="py-12 flex flex-col items-center gap-3 text-center">
             <MapPin className="w-10 h-10 text-court-text" />
-            <p className="text-court-text">Nema rezultata za "{query}"</p>
+            <p className="text-court-text">Nema rezultata za &quot;{query}&quot;</p>
           </div>
         )}
       </div>
