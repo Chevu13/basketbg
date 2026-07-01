@@ -53,7 +53,9 @@ export default function CreateGatheringInline({ courtId, onSuccess }: Props) {
         user_id: user.id,
         status: 'dolazim',
       })
-      await supabase.rpc('increment_arrivals', { uid: user.id }).catch(() => {})
+      try {
+        await supabase.rpc('increment_arrivals', { uid: user.id })
+      } catch {}
     }
     setLoading(false)
     onSuccess()
