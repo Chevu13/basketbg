@@ -245,24 +245,46 @@ ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
 -- TRIGGER: Auto-create profile + reputation on signup
 -- ============================================================
 CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  base_username TEXT;
 BEGIN
-  INSERT INTO profiles (id, username, full_name, avatar_url)
-  VALUES (
-    NEW.id,
-    COALESCE(NEW.raw_user_meta_data->>'username', split_part(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
-    NEW.raw_user_meta_data->>'avatar_url'
-  )
-  ON CONFLICT (id) DO NOTHING;
+  base_username := COALESCE(
+    NULLIF(NEW.raw_user_meta_data->>'username', ''),
+    split_part(NEW.email, '@', 1)
+  );
 
-  INSERT INTO user_reputation (user_id)
+  BEGIN
+    INSERT INTO public.profiles (id, username, full_name, avatar_url)
+    VALUES (
+      NEW.id,
+      base_username,
+      COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+      NEW.raw_user_meta_data->>'avatar_url'
+    )
+    ON CONFLICT (id) DO NOTHING;
+  EXCEPTION WHEN unique_violation THEN
+    -- username zauzet → dodaj sufiks iz UUID-a
+    INSERT INTO public.profiles (id, username, full_name, avatar_url)
+    VALUES (
+      NEW.id,
+      base_username || '_' || substr(NEW.id::text, 1, 4),
+      COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+      NEW.raw_user_meta_data->>'avatar_url'
+    )
+    ON CONFLICT (id) DO NOTHING;
+  END;
+
+  INSERT INTO public.user_reputation (user_id)
   VALUES (NEW.id)
   ON CONFLICT (user_id) DO NOTHING;
 
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created

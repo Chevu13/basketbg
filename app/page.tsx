@@ -271,9 +271,9 @@ export default function HomePage() {
             <span className="text-[13px] font-semibold text-white">Tereni blizu tebe</span>
             <Link href="/courts" className="text-[13px] font-medium text-orange-500">Svi tereni</Link>
           </div>
-          <div className="flex gap-2.5 px-4 overflow-x-auto no-scrollbar" style={{ scrollSnapType: 'x mandatory' }}>
+          <div className="flex flex-col gap-2.5 px-4">
             {nearbyCourts.map(c => (
-              <CourtCard key={c.id} court={c} distance={c.distance} layout="rail" />
+              <CourtCard key={c.id} court={c} distance={c.distance} layout="row" />
             ))}
           </div>
         </>
