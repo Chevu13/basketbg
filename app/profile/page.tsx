@@ -79,8 +79,10 @@ export default function ProfilePage() {
     const file = e.target.files?.[0]
     if (!file || !user) return
 
-    // validacija
-    if (!file.type.startsWith('image/')) {
+    // validacija (neki Android WebView-ovi ne popune file.type za content:// URI-je,
+    // pa u tom slučaju dozvoljavamo ako ekstenzija izgleda kao slika)
+    const looksLikeImageExt = /\.(jpe?g|png|gif|webp|heic|heif)$/i.test(file.name)
+    if (!file.type.startsWith('image/') && !looksLikeImageExt) {
       toast.error('Izaberi sliku')
       return
     }
@@ -113,9 +115,16 @@ export default function ProfilePage() {
 
       await refreshProfile()
       toast.success('Slika ažurirana!')
-    } catch (err) {
+    } catch (err: any) {
       console.error('[BasketBG] avatar upload error:', err)
-      toast.error('Greška pri otpremanju slike')
+      const msg = err?.message || err?.error_description || ''
+      if (/bucket/i.test(msg)) {
+        toast.error('Bucket za avatare ne postoji — pokreni avatars-storage.sql u Supabase')
+      } else if (/row-level security|policy/i.test(msg)) {
+        toast.error('Nemaš dozvolu za upload — pokreni avatars-storage.sql u Supabase')
+      } else {
+        toast.error(msg ? `Greška: ${msg}` : 'Greška pri otpremanju slike')
+      }
     } finally {
       setUploadingAvatar(false)
       if (fileInputRef.current) fileInputRef.current.value = ''

@@ -107,34 +107,36 @@ body {
 }
 
 /* Input styles */
-.input-dark {
-  @apply w-full bg-court-card border border-court-border rounded-xl px-4 py-3
-         text-white placeholder-court-text text-sm
-         focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20
-         transition-all duration-200;
-}
+@layer components {
+  .input-dark {
+    @apply w-full bg-court-card border border-court-border rounded-xl px-4 py-3
+           text-white placeholder-court-text text-sm
+           focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20
+           transition-all duration-200;
+  }
 
-/* Card styles */
-.card-dark {
-  @apply bg-court-card border border-court-border rounded-2xl;
-}
+  /* Card styles */
+  .card-dark {
+    @apply bg-court-card border border-court-border rounded-2xl;
+  }
 
-/* Orange button */
-.btn-orange {
-  @apply bg-orange-500 hover:bg-orange-600 active:bg-orange-700
-         text-white font-semibold
-         rounded-xl px-6 py-3 text-sm
-         transition-all duration-150 active:scale-95
-         disabled:opacity-50 disabled:cursor-not-allowed;
-  box-shadow: 0 3px 14px rgba(255, 107, 0, 0.28);
-}
+  /* Orange button */
+  .btn-orange {
+    @apply bg-orange-500 hover:bg-orange-600 active:bg-orange-700
+           text-white font-semibold
+           rounded-xl px-6 py-3 text-sm
+           transition-all duration-150 active:scale-95
+           disabled:opacity-50 disabled:cursor-not-allowed;
+    box-shadow: 0 3px 14px rgba(255, 107, 0, 0.28);
+  }
 
-/* Ghost button */
-.btn-ghost {
-  @apply border border-court-border hover:border-orange-500/50
-         text-court-text hover:text-white
-         rounded-xl px-6 py-3 text-sm font-medium
-         transition-all duration-150;
+  /* Ghost button */
+  .btn-ghost {
+    @apply border border-court-border hover:border-orange-500/50
+           text-court-text hover:text-white
+           rounded-xl px-6 py-3 text-sm font-medium
+           transition-all duration-150;
+  }
 }
 
 /* Fallback court photo panel - used when a court has no image_url.
