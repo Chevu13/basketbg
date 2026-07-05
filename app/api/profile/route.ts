@@ -21,7 +21,7 @@ export async function PATCH(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { full_name, username, bio } = await request.json()
+  const { full_name, username, bio, avatar_url } = await request.json()
 
   if (username) {
     const { data: existing } = await supabase
@@ -33,9 +33,15 @@ export async function PATCH(request: NextRequest) {
     if (existing) return NextResponse.json({ error: 'Username zauzet' }, { status: 409 })
   }
 
+  const updates: Record<string, any> = { updated_at: new Date().toISOString() }
+  if (full_name !== undefined)  updates.full_name = full_name
+  if (username !== undefined)   updates.username = username
+  if (bio !== undefined)        updates.bio = bio
+  if (avatar_url !== undefined) updates.avatar_url = avatar_url
+
   const { data, error } = await supabase
     .from('profiles')
-    .update({ full_name, username, bio, updated_at: new Date().toISOString() })
+    .update(updates)
     .eq('id', session.user.id)
     .select().single()
 

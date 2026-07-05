@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useAuth } from '@/components/layout/AuthProvider'
 import type { Gathering, Court, UserReputation } from '@/types'
 import { getReputationColor, getReputationLabel, formatGatheringTime } from '@/lib/utils'
-import { LogOut, Edit3, Check, X, MapPin, Calendar, Star, UserX, Shield } from 'lucide-react'
+import { LogOut, Edit3, Check, X, MapPin, Calendar, Star, UserX, Shield, Camera, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
@@ -22,6 +22,8 @@ export default function ProfilePage() {
   const [editUsername, setEditUsername]   = useState('')
   const [editBio, setEditBio]             = useState('')
   const [saving, setSaving]               = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const router   = useRouter()
   const supabase = createClient()
 
@@ -71,6 +73,55 @@ export default function ProfilePage() {
     setSaving(false)
   }
 
+  const handleAvatarPick = () => fileInputRef.current?.click()
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !user) return
+
+    // validacija
+    if (!file.type.startsWith('image/')) {
+      toast.error('Izaberi sliku')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Slika je prevelika (max 5MB)')
+      return
+    }
+
+    setUploadingAvatar(true)
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+      // stabilna putanja u folderu = user.id (traži RLS politika)
+      const path = `${user.id}/avatar.${ext}`
+
+      const { error: uploadErr } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true, cacheControl: '3600' })
+      if (uploadErr) throw uploadErr
+
+      const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path)
+      // cache-buster da se nova slika odmah vidi
+      const publicUrl = `${pub.publicUrl}?v=${Date.now()}`
+
+      const res = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatar_url: publicUrl }),
+      })
+      if (!res.ok) throw new Error('save-failed')
+
+      await refreshProfile()
+      toast.success('Slika ažurirana!')
+    } catch (err) {
+      console.error('[BasketBG] avatar upload error:', err)
+      toast.error('Greška pri otpremanju slike')
+    } finally {
+      setUploadingAvatar(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
     toast.success('Odjavio si se')
@@ -93,9 +144,34 @@ export default function ProfilePage() {
       {/* Header */}
       <div className="px-5 pt-6 pb-5 border-b border-[#1a1a1a]">
         <div className="flex items-start gap-4">
-          <div className="w-[68px] h-[68px] rounded-2xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center flex-shrink-0">
-            <span className="font-display font-black text-3xl text-orange-500">{initials}</span>
-          </div>
+          <button
+            onClick={handleAvatarPick}
+            disabled={uploadingAvatar}
+            className="group relative w-[68px] h-[68px] rounded-2xl overflow-hidden flex-shrink-0 border border-orange-500/30 bg-orange-500/15 flex items-center justify-center"
+            aria-label="Promeni sliku profila"
+          >
+            {profile.avatar_url ? (
+              <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <span className="font-display font-black text-3xl text-orange-500">{initials}</span>
+            )}
+            {/* overlay: uvek vidljiv tokom uploada, na hover inače */}
+            <span className={cn(
+              'absolute inset-0 bg-black/45 flex items-center justify-center transition-opacity',
+              uploadingAvatar ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 group-active:opacity-100'
+            )}>
+              {uploadingAvatar
+                ? <Loader2 className="w-5 h-5 text-white animate-spin" />
+                : <Camera className="w-5 h-5 text-white" />}
+            </span>
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleAvatarChange}
+          />
           <div className="flex-1 min-w-0">
             {editing ? (
               <div className="flex flex-col gap-2">
