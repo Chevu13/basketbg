@@ -194,10 +194,16 @@ CREATE TABLE IF NOT EXISTS court_suggestions (
   lat          DOUBLE PRECISION NOT NULL,
   lng          DOUBLE PRECISION NOT NULL,
   description  TEXT,
+  is_outdoor   BOOLEAN DEFAULT TRUE,
+  surface      TEXT DEFAULT 'asfalt',
   status       TEXT DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
   admin_note   TEXT,
   created_at   TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Migration for existing databases created before is_outdoor/surface existed:
+ALTER TABLE court_suggestions ADD COLUMN IF NOT EXISTS is_outdoor BOOLEAN DEFAULT TRUE;
+ALTER TABLE court_suggestions ADD COLUMN IF NOT EXISTS surface TEXT DEFAULT 'asfalt';
 
 ALTER TABLE court_suggestions ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "suggestions_insert" ON court_suggestions;

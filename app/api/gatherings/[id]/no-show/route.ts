@@ -1,15 +1,16 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createRouteClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createRouteClient()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data: gathering } = await supabase
     .from('gatherings')
-    .select('created_by, gathering_time')
+    .select('created_by, gathering_time, court_id')
     .eq('id', params.id)
     .single()
 
@@ -32,6 +33,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       title: 'Zabeležen no-show',
       body: 'Nisi se pojavio na igri. Reputacija -15.',
       related_gathering_id: params.id,
+      related_court_id: gathering.court_id, // FIX: was missing, made notification link dead-end
     })
   }
 

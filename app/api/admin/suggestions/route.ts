@@ -1,9 +1,10 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createRouteClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 export async function PATCH(request: NextRequest) {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createRouteClient()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -11,7 +12,6 @@ export async function PATCH(request: NextRequest) {
   if (!profile?.is_admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { id, action, admin_note } = await request.json()
-  // action: 'approve' | 'reject'
 
   if (action === 'approve') {
     const { data: suggestion } = await supabase
@@ -27,6 +27,8 @@ export async function PATCH(request: NextRequest) {
         lat: suggestion.lat,
         lng: suggestion.lng,
         description: suggestion.description,
+        is_outdoor: suggestion.is_outdoor,
+        surface: suggestion.surface,
         is_approved: true,
         created_by: suggestion.submitted_by,
       })

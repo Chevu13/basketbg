@@ -1,6 +1,7 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createRouteClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
+
+export const dynamic = 'force-dynamic'
 
 async function requireAdmin(supabase: any) {
   const { data: { session } } = await supabase.auth.getSession()
@@ -10,7 +11,7 @@ async function requireAdmin(supabase: any) {
 }
 
 export async function GET(request: NextRequest) {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createRouteClient()
   const session = await requireAdmin(supabase)
   if (!session) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 

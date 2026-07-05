@@ -23,6 +23,26 @@ export function formatChatTime(dateStr: string): string {
   return format(new Date(dateStr), 'HH:mm')
 }
 
+/** Minutes until (positive) or since (negative) the given ISO datetime. */
+export function minutesUntil(dateStr: string): number {
+  return Math.round((new Date(dateStr).getTime() - Date.now()) / 60000)
+}
+
+/** Short countdown label used on gathering cards, e.g. "Za 18 min", "Igra u toku". */
+export function formatCountdown(dateStr: string): string {
+  const diff = minutesUntil(dateStr)
+  if (diff <= 0) return 'Igra u toku'
+  if (diff < 60) return `Za ${diff} min`
+  const h = Math.floor(diff / 60)
+  const m = diff % 60
+  return `Za ${h}h${m > 0 ? ` ${m}min` : ''}`
+}
+
+export function formatDistance(km: number | undefined): string {
+  if (km === undefined || Number.isNaN(km)) return ''
+  return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`
+}
+
 export function getReputationColor(score: number): string {
   if (score >= 80) return 'text-green-400'
   if (score >= 50) return 'text-yellow-400'
@@ -31,19 +51,19 @@ export function getReputationColor(score: number): string {
 
 export function getReputationLabel(score: number): string {
   if (score >= 90) return 'Legenda'
-  if (score >= 75) return 'Pouzdан'
-  if (score >= 50) return 'Solidан'
+  if (score >= 75) return 'Pouzdan'
+  if (score >= 50) return 'Solidan'
   if (score >= 25) return 'Neizvestan'
   return 'Ne baš pouzdan'
 }
 
-export function getInitials(name: string | null, username: string): string {
+export function getInitials(name: string | null | undefined, username: string): string {
   if (name) {
-    const parts = name.split(' ')
+    const parts = name.trim().split(/\s+/)
     if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
     return name[0].toUpperCase()
   }
-  return username[0].toUpperCase()
+  return username ? username[0].toUpperCase() : '?'
 }
 
 export function getDistanceKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -58,4 +78,24 @@ export function getDistanceKm(lat1: number, lng1: number, lat2: number, lng2: nu
       Math.sin(dLng / 2)
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   return R * c
+}
+
+/**
+ * Projects a lat/lng pair onto a 0–100 percentage box, given the bounding
+ * box of all points that need to fit on the same mock map canvas.
+ * Used by the in-house SVG map (no external maps tiles needed for the demo view).
+ */
+export function projectToPercent(
+  lat: number,
+  lng: number,
+  bounds: { minLat: number; maxLat: number; minLng: number; maxLng: number },
+  padding = 15
+): { top: number; left: number } {
+  const latRange = bounds.maxLat - bounds.minLat || 0.001
+  const lngRange = bounds.maxLng - bounds.minLng || 0.001
+  const usable = 100 - padding * 2
+  const left = padding + ((lng - bounds.minLng) / lngRange) * usable
+  // lat is inverted: higher lat = further north = higher on screen = smaller top%
+  const top = padding + (1 - (lat - bounds.minLat) / latRange) * usable
+  return { top, left }
 }

@@ -6,13 +6,13 @@ import TopBar from '@/components/layout/TopBar'
 import AuthProvider from '@/components/layout/AuthProvider'
 
 export const metadata: Metadata = {
-  title: 'BasketBG – Gde se danas igra basket?',
+  title: 'BasketBG – Ko igra večeras?',
   description: 'Pronađi gde se danas igra pikap basket u Beogradu',
   manifest: '/manifest.json',
-  icons: { icon: '/favicon.ico' },
+  icons: { icon: '/favicon.ico', apple: '/icon-192.png' },
   openGraph: {
     title: 'BasketBG',
-    description: 'Gde se danas igra basket u Beogradu?',
+    description: 'Ko igra večeras? Pronađi pikap basket u Beogradu.',
     type: 'website',
   },
 }
@@ -20,9 +20,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  themeColor: '#0A0A0A',
+  // Zoom is intentionally left enabled (no maximumScale/userScalable lock) —
+  // disabling pinch-to-zoom is an accessibility anti-pattern.
+  themeColor: '#0C0C0E',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -41,14 +41,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             position="top-center"
             toastOptions={{
               style: {
-                background: '#111',
+                background: '#161618',
                 color: '#fff',
-                border: '1px solid #1E1E1E',
+                border: '1px solid rgba(255,255,255,0.1)',
                 borderRadius: '12px',
                 fontSize: '14px',
               },
               success: {
-                iconTheme: { primary: '#F97316', secondary: '#111' },
+                iconTheme: { primary: '#FF6B00', secondary: '#161618' },
               },
             }}
           />

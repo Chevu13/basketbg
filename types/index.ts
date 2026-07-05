@@ -3,6 +3,7 @@ export type Profile = {
   username: string
   full_name: string | null
   avatar_url: string | null
+  bio: string | null
   is_admin: boolean
   created_at: string
   updated_at: string
@@ -27,6 +28,7 @@ export type Court = {
   followers_count?: number
   is_following?: boolean
   active_gatherings?: number
+  distance?: number
 }
 
 export type CourtFollower = {
@@ -36,6 +38,9 @@ export type CourtFollower = {
   created_at: string
 }
 
+export type GameType = '3x3' | '5x5' | 'slobodan'
+export type GameLevel = 'rekreativno' | 'srednji' | 'jak'
+
 export type Gathering = {
   id: string
   court_id: string
@@ -44,6 +49,8 @@ export type Gathering = {
   description: string | null
   gathering_time: string
   max_players: number | null
+  game_type: GameType | null
+  level: GameLevel | null
   is_active: boolean
   created_at: string
   updated_at: string
@@ -53,6 +60,7 @@ export type Gathering = {
   attendees_count?: number
   is_attending?: boolean
   attendees?: GatheringAttendee[]
+  distance?: number
 }
 
 export type GatheringAttendee = {
@@ -105,6 +113,8 @@ export type CourtSuggestion = {
   lat: number
   lng: number
   description: string | null
+  is_outdoor: boolean
+  surface: string
   status: 'pending' | 'approved' | 'rejected'
   admin_note: string | null
   created_at: string

@@ -211,7 +211,7 @@ export default function NewGatheringPage() {
         )}
 
         <button onClick={handleSubmit} disabled={loading || !selectedCourt || !title}
-          className="h-13 h-[52px] w-full bg-orange-500 hover:bg-orange-400 active:scale-95 text-white font-semibold rounded-xl transition-all duration-150 flex items-center justify-center gap-2 disabled:opacity-40"
+          className="h-[52px] w-full bg-orange-500 hover:bg-orange-400 active:scale-95 text-white font-semibold rounded-xl transition-all duration-150 flex items-center justify-center gap-2 disabled:opacity-40"
           style={{boxShadow:'0 3px 14px rgba(255,107,0,.3)'}}>
           {loading
             ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>Zakazujem...</>

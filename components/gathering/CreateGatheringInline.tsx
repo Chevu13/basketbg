@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase'
 import { useAuth } from '@/components/layout/AuthProvider'
 import { Clock, Users, MessageSquare } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import toast from 'react-hot-toast'
+import type { GameType } from '@/types'
 
 type Props = {
   courtId: string
@@ -17,6 +19,11 @@ const QUICK_TEXTS = [
   'Igra se, ekipa se skuplja',
   'Treba nam još igrača',
 ]
+const GAME_TYPES: { v: GameType; l: string }[] = [
+  { v: '3x3', l: '3×3' },
+  { v: '5x5', l: '5×5' },
+  { v: 'slobodan', l: 'Slobodno' },
+]
 
 export default function CreateGatheringInline({ courtId, onSuccess }: Props) {
   const { user } = useAuth()
@@ -24,41 +31,35 @@ export default function CreateGatheringInline({ courtId, onSuccess }: Props) {
   const [time, setTime] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [maxPlayers, setMaxPlayers] = useState('')
+  const [gameType, setGameType] = useState<GameType>('5x5')
   const [loading, setLoading] = useState(false)
-  const supabase = createClient()
 
   const handleSubmit = async () => {
-    if (!title || !time || !user) return
+    if (!title || !time || !user) { toast.error('Popuni sva obavezna polja'); return }
     setLoading(true)
     const gatheringTime = new Date(`${date}T${time}:00`)
-    await supabase.from('gatherings').insert({
-      court_id: courtId,
-      created_by: user.id,
-      title,
-      gathering_time: gatheringTime.toISOString(),
-      max_players: maxPlayers ? parseInt(maxPlayers) : null,
-    })
-    // Auto-attend
-    const { data: g } = await supabase
-      .from('gatherings')
-      .select('id')
-      .eq('court_id', courtId)
-      .eq('created_by', user.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single()
-    if (g) {
-      await supabase.from('gathering_attendees').insert({
-        gathering_id: g.id,
-        user_id: user.id,
-        status: 'dolazim',
+
+    try {
+      const res = await fetch('/api/gatherings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          court_id: courtId,
+          title,
+          gathering_time: gatheringTime.toISOString(),
+          max_players: maxPlayers ? parseInt(maxPlayers) : null,
+          game_type: gameType,
+        }),
       })
-      try {
-        await supabase.rpc('increment_arrivals', { uid: user.id })
-      } catch {}
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Greška pri kreiranju')
+      toast.success('Okupljanje zakazano! 🏀')
+      onSuccess()
+    } catch (e: any) {
+      toast.error(e.message || 'Greška, pokušaj ponovo')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
-    onSuccess()
   }
 
   return (
@@ -71,11 +72,10 @@ export default function CreateGatheringInline({ courtId, onSuccess }: Props) {
             <button
               key={t}
               onClick={() => setTitle(t)}
-              className={`text-xs px-2.5 py-1.5 rounded-lg border transition-all ${
-                title === t
-                  ? 'border-orange-500/50 bg-orange-500/10 text-orange-500'
-                  : 'border-court-border text-court-text hover:border-orange-500/30'
-              }`}
+              className={cn(
+                'text-xs px-2.5 py-1.5 rounded-lg border transition-all',
+                title === t ? 'border-orange-500/50 bg-orange-500/10 text-orange-500' : 'border-court-border text-court-text hover:border-orange-500/30'
+              )}
             >
               {t}
             </button>
@@ -118,16 +118,34 @@ export default function CreateGatheringInline({ courtId, onSuccess }: Props) {
               <button
                 key={t}
                 onClick={() => setTime(t)}
-                className={`flex-1 text-xs py-1.5 rounded-lg border transition-all min-w-[44px] ${
-                  time === t
-                    ? 'border-orange-500 bg-orange-500 text-white'
-                    : 'border-court-border text-court-text hover:border-orange-500/30'
-                }`}
+                className={cn(
+                  'flex-1 text-xs py-1.5 rounded-lg border transition-all min-w-[44px]',
+                  time === t ? 'border-orange-500 bg-orange-500 text-white' : 'border-court-border text-court-text hover:border-orange-500/30'
+                )}
               >
                 {t}
               </button>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Game type */}
+      <div>
+        <p className="text-xs text-court-text mb-1.5 uppercase tracking-wide font-semibold">Tip igre</p>
+        <div className="grid grid-cols-3 gap-1.5">
+          {GAME_TYPES.map(({ v, l }) => (
+            <button
+              key={v}
+              onClick={() => setGameType(v)}
+              className={cn(
+                'text-xs py-1.5 rounded-lg border transition-all font-medium',
+                gameType === v ? 'border-orange-500 bg-orange-500/10 text-orange-500' : 'border-court-border text-court-text hover:border-orange-500/30'
+              )}
+            >
+              {l}
+            </button>
+          ))}
         </div>
       </div>
 

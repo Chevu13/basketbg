@@ -10,17 +10,19 @@ const config: Config = {
     extend: {
       colors: {
         orange: {
-          400: '#FB923C',
-          500: '#F97316',
-          600: '#EA580C',
-          700: '#C2410C',
+          400: '#FF8A33',
+          500: '#FF6B00',
+          600: '#E65F00',
+          700: '#CC5400',
         },
         court: {
-          bg: '#0A0A0A',
-          card: '#111111',
-          border: '#1E1E1E',
-          muted: '#2A2A2A',
-          text: '#A1A1A1',
+          bg: '#0C0C0E',
+          card: '#161618',
+          card2: '#1C1C1F',
+          border: '#1D1D1F',
+          muted: '#242428',
+          text: '#8E8E93',
+          text2: '#5C5C60',
         },
       },
       fontFamily: {
@@ -33,6 +35,9 @@ const config: Config = {
         'pulse-orange': 'pulseOrange 2s ease-in-out infinite',
         'bounce-subtle': 'bounceSubtle 1s ease-in-out infinite',
         'ping': 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite',
+        'live-pip': 'livePip 2s ease-in-out infinite',
+        'map-pulse': 'mapPulse 2.4s ease-in-out infinite',
+        'shimmer': 'shimmer 1.4s infinite',
       },
       keyframes: {
         fadeIn: {
@@ -44,8 +49,8 @@ const config: Config = {
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         pulseOrange: {
-          '0%, 100%': { boxShadow: '0 0 0 0 rgba(249, 115, 22, 0)' },
-          '50%': { boxShadow: '0 0 0 6px rgba(249, 115, 22, 0.15)' },
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(255, 107, 0, 0)' },
+          '50%': { boxShadow: '0 0 0 6px rgba(255, 107, 0, 0.15)' },
         },
         bounceSubtle: {
           '0%, 100%': { transform: 'translateY(0)' },
@@ -53,6 +58,18 @@ const config: Config = {
         },
         ping: {
           '75%, 100%': { transform: 'scale(2)', opacity: '0' },
+        },
+        livePip: {
+          '0%, 100%': { transform: 'scale(1)', opacity: '.8' },
+          '60%': { transform: 'scale(2.2)', opacity: '0' },
+        },
+        mapPulse: {
+          '0%, 100%': { transform: 'translate(-50%,-50%) scale(1)', opacity: '.7' },
+          '50%': { transform: 'translate(-50%,-50%) scale(1.5)', opacity: '0' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-400px 0' },
+          '100%': { backgroundPosition: '400px 0' },
         },
       },
     },

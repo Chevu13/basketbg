@@ -52,7 +52,13 @@ export default function SuggestCourtPage() {
     const res = await fetch('/api/courts/suggest', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, address, lat: parseFloat(lat), lng: parseFloat(lng), description: description || null }),
+      body: JSON.stringify({
+        name, address,
+        lat: parseFloat(lat), lng: parseFloat(lng),
+        description: description || null,
+        is_outdoor: isOutdoor,
+        surface,
+      }),
     })
     if (!res.ok) { toast.error('Greška'); setLoading(false); return }
     setSubmitted(true)

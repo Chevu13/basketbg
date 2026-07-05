@@ -1,9 +1,10 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createRouteClient } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createRouteClient()
   const { data, error } = await supabase
     .from('gathering_comments')
     .select('*, profile:profiles(id, username, avatar_url)')
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createRouteClient()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

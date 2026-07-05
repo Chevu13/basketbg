@@ -95,7 +95,7 @@ export default function NotificationsPage() {
             </div>
             <div>
               <p className="font-display font-bold text-xl uppercase text-white">Nema obaveštenja</p>
-              <p className="text-[#555] text-sm mt-1">Prati terene da primаš obaveštenja</p>
+              <p className="text-[#555] text-sm mt-1">Prati terene da primaš obaveštenja</p>
             </div>
             <Link href="/courts" className="bg-orange-500 text-white font-semibold text-sm px-5 py-2.5 rounded-xl" style={{boxShadow:'0 3px 14px rgba(255,107,0,.3)'}}>
               Pronađi terene
