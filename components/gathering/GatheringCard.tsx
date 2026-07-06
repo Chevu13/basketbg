@@ -106,6 +106,7 @@ export default function GatheringCard({ gathering, onUpdate, variant = 'full' }:
   const [attending, setAttending] = useState(gathering.is_attending ?? false)
   const [count, setCount] = useState(gathering.attendees_count ?? 0)
   const [loading, setLoading] = useState(false)
+  const [showAttendees, setShowAttendees] = useState(false)
 
   const max = gathering.max_players ?? 10
   const pct = Math.min(100, (count / max) * 100)
@@ -114,7 +115,7 @@ export default function GatheringCard({ gathering, onUpdate, variant = 'full' }:
   const fillLabel = getFillLabel(count, gathering.max_players)
   const court = gathering.court
   const creator = gathering.creator
-  const attendees = gathering.attendees ?? []
+  const attendees = (gathering.attendees ?? []).filter(a => a.status === 'dolazim')
   const diffMin = minutesUntil(gathering.gathering_time)
   const isLive = diffMin <= 0
   const isSoon = diffMin > 0 && diffMin <= 30
@@ -137,15 +138,18 @@ export default function GatheringCard({ gathering, onUpdate, variant = 'full' }:
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: 'dolazim' }),
         })
-        if (!res.ok) throw new Error()
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}))
+          throw new Error(body.error || 'attend-failed')
+        }
         setAttending(true)
         setCount(c => c + 1)
         toast.success('Prijavljen si! 🏀')
         if (navigator.vibrate) navigator.vibrate(10)
       }
       onUpdate?.()
-    } catch {
-      toast.error('Greška, pokušaj ponovo')
+    } catch (err: any) {
+      toast.error(err?.message && err.message !== 'attend-failed' ? err.message : 'Greška, pokušaj ponovo')
     } finally {
       setLoading(false)
     }
@@ -156,6 +160,7 @@ export default function GatheringCard({ gathering, onUpdate, variant = 'full' }:
   const timeRange = `${new Date(gathering.gathering_time).toLocaleTimeString('sr-Latn', { hour: '2-digit', minute: '2-digit' })}–${endTime.toLocaleTimeString('sr-Latn', { hour: '2-digit', minute: '2-digit' })}`
 
   return (
+    <>
     <Link href={`/courts/${gathering.court_id}?gathering=${gathering.id}`}>
       <div
         className={cn(
@@ -255,7 +260,16 @@ export default function GatheringCard({ gathering, onUpdate, variant = 'full' }:
 
           {/* Avatars + court type */}
           <div className="flex items-center justify-between gap-2.5 mb-3">
-            <div className="flex items-center">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                if (attendees.length > 0) setShowAttendees(true)
+              }}
+              className="flex items-center"
+              disabled={attendees.length === 0}
+            >
               {attendees.slice(0, 4).map((a, i) => (
                 <div
                   key={a.user_id ?? i}
@@ -275,7 +289,7 @@ export default function GatheringCard({ gathering, onUpdate, variant = 'full' }:
               {attendees.length === 0 && (
                 <span className="text-court-text2 text-xs">Budi prvi</span>
               )}
-            </div>
+            </button>
             {court && (
               <span className="inline-flex items-center bg-court-card2 border border-court-border rounded-md px-2 py-1 text-[11px] font-medium text-court-text">
                 {court.is_outdoor ? 'Outdoor' : 'Indoor'}
@@ -318,5 +332,47 @@ export default function GatheringCard({ gathering, onUpdate, variant = 'full' }:
         </div>
       </div>
     </Link>
+
+    {showAttendees && (
+      <div
+        className="fixed inset-0 z-50 bg-black/70 flex items-end sm:items-center justify-center p-0 sm:p-4"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowAttendees(false) }}
+      >
+        <div
+          className="bg-court-card border border-court-border rounded-t-3xl sm:rounded-3xl w-full sm:max-w-sm max-h-[70vh] overflow-y-auto p-5"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-display font-black text-lg text-white uppercase">
+              Potvrđeni igrači ({attendees.length})
+            </h3>
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowAttendees(false) }}
+              className="w-8 h-8 rounded-full bg-court-card2 flex items-center justify-center text-court-text hover:text-white"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="flex flex-col gap-2">
+            {attendees.map((a, i) => (
+              <div key={a.user_id ?? i} className="flex items-center gap-3 py-2">
+                <div
+                  className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center font-display font-bold text-xs text-white flex-shrink-0"
+                  style={{ background: a.profile?.avatar_url ? undefined : AVATAR_COLORS[i % AVATAR_COLORS.length] }}
+                >
+                  {a.profile?.avatar_url
+                    ? <img src={a.profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                    : getInitials(null, a.profile?.username ?? '?')}
+                </div>
+                <span className="text-white text-sm font-medium">
+                  {a.profile?.full_name || a.profile?.username || 'Igrač'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   )
 }

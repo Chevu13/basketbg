@@ -1,12 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700;1,800;1,900&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Michroma&family=Saira+Condensed:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,600;1,700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --font-barlow: 'Barlow Condensed', sans-serif;
-  --font-inter: 'Inter', sans-serif;
+  --font-barlow: 'Michroma', sans-serif;
+  --font-inter: 'Saira Condensed', sans-serif;
   --orange: #FF6B00;
   --orange-dim: rgba(255, 107, 0, 0.14);
   --bg: #0C0C0E;
@@ -105,6 +105,18 @@ body {
 .live-badge {
   animation: liveFlash 1.5s ease-in-out infinite;
 }
+
+@keyframes mapPulse {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* Leaflet override — mapa je unutar zaobljenog kontejnera, ukloni default belu pozadinu */
+.leaflet-container {
+  background: #1A1A2E !important;
+  font-family: var(--font-inter);
+}
+.leaflet-pane, .leaflet-tile { filter: none; }
 
 /* Input styles */
 @layer components {

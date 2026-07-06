@@ -55,6 +55,35 @@ export async function POST(request: NextRequest) {
   if (new Date(gathering_time) < new Date(Date.now() - 5 * 60 * 1000))
     return NextResponse.json({ error: 'Vreme okupljanja je već prošlo' }, { status: 400 })
 
+  // Kreator se automatski prijavljuje kao "dolazim" na svoju igru — proveri preklapanje
+  // sa drugim igrama na koje je već potvrdio dolazak (isti fiksni 2h prozor kao u UI-ju).
+  const GATHERING_DURATION_MS = 2 * 60 * 60 * 1000
+  const newStart = new Date(gathering_time).getTime()
+  const newEnd = newStart + GATHERING_DURATION_MS
+
+  const { data: myConfirmed } = await supabase
+    .from('gathering_attendees')
+    .select('gathering:gatherings(id, title, gathering_time, court:courts(name))')
+    .eq('user_id', session.user.id)
+    .eq('status', 'dolazim')
+
+  const conflict = (myConfirmed ?? []).find((row: any) => {
+    const g = row.gathering
+    if (!g) return false
+    const otherStart = new Date(g.gathering_time).getTime()
+    const otherEnd = otherStart + GATHERING_DURATION_MS
+    return newStart < otherEnd && otherStart < newEnd
+  })
+
+  if (conflict) {
+    const g = (conflict as any).gathering
+    const time = new Date(g.gathering_time).toLocaleTimeString('sr-Latn', { hour: '2-digit', minute: '2-digit' })
+    return NextResponse.json(
+      { error: `Već ideš na "${g.title}" (${g.court?.name ?? 'teren'}, ${time}) u ovom terminu. Otkaži tu igru prvo ako želiš da zakažeš ovu.` },
+      { status: 409 }
+    )
+  }
+
   const { data: gathering, error } = await supabase
     .from('gatherings')
     .insert({

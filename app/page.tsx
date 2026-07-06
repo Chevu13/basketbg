@@ -8,7 +8,8 @@ import Link from 'next/link'
 import GatheringCard from '@/components/gathering/GatheringCard'
 import GatheringCardSkeleton from '@/components/gathering/GatheringCardSkeleton'
 import CourtCard from '@/components/court/CourtCard'
-import HomeMap from '@/components/map/HomeMap'
+import dynamic from 'next/dynamic'
+const HomeMap = dynamic(() => import('@/components/map/HomeMap'), { ssr: false })
 import { Search, X } from 'lucide-react'
 
 // Type filters are mutually exclusive within their own group (date, court-type),

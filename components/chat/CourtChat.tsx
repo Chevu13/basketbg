@@ -98,8 +98,12 @@ export default function CourtChat({ courtId }: Props) {
               className={cn('flex items-end gap-2', isOwn && 'flex-row-reverse')}
             >
               {/* Avatar */}
-              <div className="w-7 h-7 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center flex-shrink-0 text-xs font-bold text-orange-500">
-                {msg.profile ? getInitials(msg.profile.full_name, msg.profile.username) : '?'}
+              <div className="w-7 h-7 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center flex-shrink-0 text-xs font-bold text-orange-500 overflow-hidden">
+                {msg.profile?.avatar_url ? (
+                  <img src={msg.profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  msg.profile ? getInitials(msg.profile.full_name, msg.profile.username) : '?'
+                )}
               </div>
               {/* Bubble */}
               <div className={cn(
