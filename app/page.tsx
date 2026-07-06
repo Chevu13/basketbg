@@ -16,7 +16,7 @@ import { Search, X } from 'lucide-react'
 // so "Outdoor" + "Indoor" (or "Danas" + "Sutra") can never both be active —
 // that would always produce zero results, which was a bug in the previous version.
 const DATE_FILTERS = ['Danas', 'Sutra'] as const
-const TYPE_FILTERS = ['3×3', '5×5'] as const
+const TYPE_FILTERS = ['3×3', '3 na 3', '5×5'] as const
 const PLACE_FILTERS = ['Outdoor', 'Indoor'] as const
 type DateFilter = typeof DATE_FILTERS[number]
 type TypeFilter = typeof TYPE_FILTERS[number]
@@ -109,6 +109,7 @@ export default function HomePage() {
     if (dateFilter === 'Danas' && !isToday) return false
     if (dateFilter === 'Sutra' && !isTomorrow) return false
     if (typeFilter === '3×3' && g.game_type !== '3x3') return false
+    if (typeFilter === '3 na 3' && g.game_type !== '3na3') return false
     if (typeFilter === '5×5' && g.game_type !== '5x5') return false
     if (placeFilter === 'Outdoor' && !g.court?.is_outdoor) return false
     if (placeFilter === 'Indoor' && g.court?.is_outdoor) return false
@@ -178,12 +179,12 @@ export default function HomePage() {
       </div>
 
       {/* Filter chips */}
-      <div className="flex gap-2 px-[18px] pt-2.5 overflow-x-auto no-scrollbar">
+      <div className="flex gap-2 px-[18px] pt-2.5 overflow-x-auto no-scrollbar snap-x snap-proximity">
         {DATE_FILTERS.map(f => (
           <button
             key={f}
             onClick={() => setDateFilter(f)}
-            className={`flex-shrink-0 h-[34px] px-3.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-all active:scale-95 ${
+            className={`flex-shrink-0 snap-start h-[34px] px-3.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-all active:scale-95 ${
               dateFilter === f ? 'bg-white text-black font-semibold' : 'bg-court-card border border-court-border text-court-text hover:border-court-border/[.6] hover:text-white'
             }`}
           >
@@ -194,7 +195,7 @@ export default function HomePage() {
           <button
             key={f}
             onClick={() => setTypeFilter(prev => prev === f ? null : f)}
-            className={`flex-shrink-0 h-[34px] px-3.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-all active:scale-95 ${
+            className={`flex-shrink-0 snap-start h-[34px] px-3.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-all active:scale-95 ${
               typeFilter === f ? 'bg-white text-black font-semibold' : 'bg-court-card border border-court-border text-court-text hover:border-court-border/[.6] hover:text-white'
             }`}
           >
@@ -205,13 +206,15 @@ export default function HomePage() {
           <button
             key={f}
             onClick={() => setPlaceFilter(prev => prev === f ? null : f)}
-            className={`flex-shrink-0 h-[34px] px-3.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-all active:scale-95 ${
+            className={`flex-shrink-0 snap-start h-[34px] px-3.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-all active:scale-95 ${
               placeFilter === f ? 'bg-white text-black font-semibold' : 'bg-court-card border border-court-border text-court-text hover:border-court-border/[.6] hover:text-white'
             }`}
           >
             {f === 'Outdoor' ? '☀️ Outdoor' : '🏢 Indoor'}
           </button>
         ))}
+        {/* Prazan razmak na kraju da poslednji chip ne bude zalepljen za ivicu ekrana */}
+        <div className="flex-shrink-0 w-[6px]" aria-hidden />
       </div>
 
       {/* Live bar */}

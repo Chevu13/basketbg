@@ -6,6 +6,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { Court, Gathering } from '@/types'
 import { useEffect, useMemo } from 'react'
+import { isStartingWithin, minutesUntil } from '@/lib/utils'
 
 type Props = {
   courts: Court[]
@@ -13,18 +14,37 @@ type Props = {
   userLocation: { lat: number; lng: number } | null
 }
 
+type MarkerState = 'active' | 'soon' | 'idle'
+
+/** Da li teren ima igru koja je u toku, ili počinje u narednih 2h, ili ništa. */
+function courtMarkerState(court: Court, gatherings: Gathering[]): MarkerState {
+  const courtGatherings = gatherings.filter(g => g.court_id === court.id)
+  if (courtGatherings.some(g => minutesUntil(g.gathering_time) <= 0)) return 'active'
+  if (courtGatherings.some(g => isStartingWithin(g.gathering_time, 120))) return 'soon'
+  return 'idle'
+}
+
 // Custom pin ikonice (bez podrazumevanog Leaflet plavog markera)
-function courtIcon(active: boolean) {
+function courtIcon(state: MarkerState) {
+  if (state === 'idle') {
+    return L.divIcon({
+      className: '',
+      html: `<div style="width:10px;height:10px;border-radius:9999px;background:#3A3A3E;border:1.5px solid rgba(255,255,255,.25);"></div>`,
+      iconSize: [10, 10],
+      iconAnchor: [5, 5],
+    })
+  }
+  const color = state === 'active' ? '#FF6B00' : '#F5C518' // narandžasta = igra se, žuta = počinje uskoro
+  const glow = state === 'active' ? 'rgba(255,107,0,.18)' : 'rgba(245,197,24,.22)'
+  const ring = state === 'active' ? 'rgba(255,107,0,.25)' : 'rgba(245,197,24,.3)'
   return L.divIcon({
     className: '',
-    html: active
-      ? `<div style="position:relative;width:28px;height:28px;">
-           <div style="position:absolute;inset:0;border-radius:9999px;background:rgba(255,107,0,.18);animation:mapPulse 2s ease-out infinite;"></div>
-           <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:9999px;background:#FF6B00;box-shadow:0 0 0 3px rgba(255,107,0,.25),0 2px 8px rgba(255,107,0,.4);"></div>
-         </div>`
-      : `<div style="width:10px;height:10px;border-radius:9999px;background:#3A3A3E;border:1.5px solid rgba(255,255,255,.25);"></div>`,
-    iconSize: active ? [28, 28] : [10, 10],
-    iconAnchor: active ? [14, 14] : [5, 5],
+    html: `<div style="position:relative;width:28px;height:28px;">
+             <div style="position:absolute;inset:0;border-radius:9999px;background:${glow};animation:mapPulse 2s ease-out infinite;"></div>
+             <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:9999px;background:${color};box-shadow:0 0 0 3px ${ring},0 2px 8px ${ring};"></div>
+           </div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
   })
 }
 
@@ -56,7 +76,7 @@ function FitBounds({ points }: { points: [number, number][] }) {
 
 export default function HomeMap({ courts, gatherings, userLocation }: Props) {
   const router = useRouter()
-  const activeCourts = useMemo(() => new Set(gatherings.map(g => g.court_id)), [gatherings])
+  const activeCourts = useMemo(() => new Set(gatherings.filter(g => minutesUntil(g.gathering_time) <= 0).map(g => g.court_id)), [gatherings])
   const activeCount = courts.filter(c => activeCourts.has(c.id)).length
 
   const points: [number, number][] = useMemo(() => [
@@ -75,7 +95,7 @@ export default function HomeMap({ courts, gatherings, userLocation }: Props) {
         zoom={13}
         scrollWheelZoom={false}
         dragging={true}
-        zoomControl={false}
+        zoomControl={true}
         attributionControl={false}
         style={{ width: '100%', height: '100%', background: '#1A1A2E' }}
       >
@@ -91,7 +111,7 @@ export default function HomeMap({ courts, gatherings, userLocation }: Props) {
           <Marker
             key={court.id}
             position={[court.lat, court.lng]}
-            icon={courtIcon(activeCourts.has(court.id))}
+            icon={courtIcon(courtMarkerState(court, gatherings))}
             eventHandlers={{ click: () => router.push(`/courts/${court.id}`) }}
           />
         ))}
@@ -111,7 +131,7 @@ export default function HomeMap({ courts, gatherings, userLocation }: Props) {
             <p className="text-white text-[13px] font-semibold">
               {activeCount > 0 ? `${activeCount} aktivn${activeCount === 1 ? 'a igra' : 'e igre'} u blizini` : 'Nema aktivnih igara sada'}
             </p>
-            <p className="text-court-text2 text-[11px] mt-px">🟠 Igra se · ⚫ Slobodan teren</p>
+            <p className="text-court-text2 text-[11px] mt-px">🟠 Igra se · 🟡 Uskoro · ⚫ Slobodan teren</p>
           </div>
           {userLocation && (
             <a

@@ -21,6 +21,7 @@ const QUICK_TEXTS = [
 ]
 const GAME_TYPES: { v: GameType; l: string }[] = [
   { v: '3x3', l: '3×3' },
+  { v: '3na3', l: '3 na 3' },
   { v: '5x5', l: '5×5' },
   { v: 'slobodan', l: 'Slobodno' },
 ]

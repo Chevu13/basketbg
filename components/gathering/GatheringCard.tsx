@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { MapPin, Check } from 'lucide-react'
 import type { Gathering } from '@/types'
-import { formatCountdown, minutesUntil, getInitials, formatDistance } from '@/lib/utils'
+import { formatCountdown, minutesUntil, isGatheringEnded, getInitials, formatDistance } from '@/lib/utils'
 import { useAuth } from '@/components/layout/AuthProvider'
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -60,6 +60,13 @@ function StatusBadge({ gathering, onPhoto }: { gathering: Gathering; onPhoto?: b
   const pct = ((gathering.attendees_count ?? 0) / max) * 100
   const base = 'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold'
 
+  if (isGatheringEnded(gathering.gathering_time)) {
+    return (
+      <span className={cn(base, onPhoto ? 'bg-black/40 border border-white/15 text-white/70 backdrop-blur-sm' : 'bg-court-muted border border-court-border text-court-text2')}>
+        Završeno
+      </span>
+    )
+  }
   if (pct >= 100) {
     return (
       <span className={cn(base, onPhoto ? 'bg-red-500/30 border border-red-500/45 text-red-200 backdrop-blur-sm' : 'bg-red-500/15 border border-red-500/30 text-red-400')}>
@@ -119,6 +126,7 @@ export default function GatheringCard({ gathering, onUpdate, variant = 'full' }:
   const diffMin = minutesUntil(gathering.gathering_time)
   const isLive = diffMin <= 0
   const isSoon = diffMin > 0 && diffMin <= 30
+  const isEnded = isGatheringEnded(gathering.gathering_time)
   const isNearlyFull = pct >= 70 && !isFull
 
   const handleAttend = async (e: React.MouseEvent) => {
@@ -225,11 +233,11 @@ export default function GatheringCard({ gathering, onUpdate, variant = 'full' }:
             </span>
             <span className={cn(
               'inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium border',
-              gathering.game_type === '3x3'
+              (gathering.game_type === '3x3' || gathering.game_type === '3na3')
                 ? 'bg-sky-400/10 border-sky-400/25 text-sky-300'
                 : 'bg-court-card2 border-court-border text-court-text'
             )}>
-              {gathering.game_type === 'slobodan' ? 'Slobodno' : (gathering.game_type ?? '5x5')}
+              {gathering.game_type === 'slobodan' ? 'Slobodno' : gathering.game_type === '3na3' ? '3 na 3' : (gathering.game_type ?? '5x5')}
             </span>
             {gathering.level && (
               <span className="inline-flex items-center gap-1 bg-court-card2 border border-court-border rounded-md px-2 py-1 text-[11px] font-medium text-court-text">
@@ -300,12 +308,16 @@ export default function GatheringCard({ gathering, onUpdate, variant = 'full' }:
           {/* Footer CTA */}
           <div className="pt-3 border-t border-court-border flex items-center justify-between gap-2.5">
             <div className="text-[13px] text-court-text font-medium leading-tight">
-              <strong className={cn('block font-semibold', isLive ? 'text-green-500' : isSoon ? 'text-orange-500' : 'text-white')}>
-                {isLive ? 'Igra u toku' : isSoon ? `${new Date(gathering.gathering_time).toLocaleTimeString('sr-Latn', { hour: '2-digit', minute: '2-digit' })} — žuri!` : new Date(gathering.gathering_time).toLocaleTimeString('sr-Latn', { hour: '2-digit', minute: '2-digit' })}
+              <strong className={cn('block font-semibold', isEnded ? 'text-court-text2' : isLive ? 'text-green-500' : isSoon ? 'text-orange-500' : 'text-white')}>
+                {isEnded ? 'Završeno' : isLive ? 'Igra u toku' : isSoon ? `${new Date(gathering.gathering_time).toLocaleTimeString('sr-Latn', { hour: '2-digit', minute: '2-digit' })} — žuri!` : new Date(gathering.gathering_time).toLocaleTimeString('sr-Latn', { hour: '2-digit', minute: '2-digit' })}
               </strong>
-              {formatCountdown(gathering.gathering_time)}
+              {isEnded ? 'Igra je gotova' : formatCountdown(gathering.gathering_time)}
             </div>
-            {isFull ? (
+            {isEnded ? (
+              <div className="flex-shrink-0 bg-court-card2 text-court-text2 text-sm font-medium py-2.5 px-3.5 rounded-[10px]">
+                Završeno
+              </div>
+            ) : isFull ? (
               <div className="flex-shrink-0 bg-court-card2 text-court-text2 text-sm font-medium py-2.5 px-3.5 rounded-[10px]">
                 Popunjeno
               </div>

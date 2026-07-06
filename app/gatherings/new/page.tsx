@@ -33,7 +33,7 @@ export default function NewGatheringPage() {
   const [date, setDate]               = useState(new Date().toISOString().split('T')[0])
   const [time, setTime]               = useState('18:00')
   const [maxPlayers, setMaxPlayers]   = useState('')
-  const [gameType, setGameType]       = useState<'3x3'|'5x5'|'slobodan'>('5x5')
+  const [gameType, setGameType]       = useState<'3x3'|'3na3'|'5x5'|'slobodan'>('5x5')
   const [level, setLevel]             = useState<'rekreativno'|'srednji'|'jak'>('rekreativno')
   const [loading, setLoading]         = useState(false)
 
@@ -150,12 +150,12 @@ export default function NewGatheringPage() {
         {/* Game type */}
         <div>
           <Label icon={<Users className="w-4 h-4"/>} text="Tip igre"/>
-          <div className="grid grid-cols-3 gap-2">
-            {(['3x3','5x5','slobodan'] as const).map(t => (
+          <div className="grid grid-cols-4 gap-2">
+            {(['3x3','3na3','5x5','slobodan'] as const).map(t => (
               <button key={t} onClick={() => setGameType(t)}
                 className={cn('py-2.5 rounded-xl text-sm border transition-all font-medium',
                   gameType === t ? 'border-orange-500 bg-orange-500/10 text-orange-500' : 'border-[rgba(255,255,255,.07)] text-[#555]')}>
-                {t}
+                {t === 'slobodan' ? 'Slobodno' : t === '3na3' ? '3 na 3' : t}
               </button>
             ))}
           </div>
@@ -201,7 +201,7 @@ export default function NewGatheringPage() {
                 <p className="text-white font-semibold text-sm">{title}</p>
                 <p className="text-[#555] text-xs mt-0.5">{selectedCourt.name}</p>
                 <div className="flex gap-1.5 mt-1.5">
-                  <span className="text-[10px] bg-[#242428] text-[#888] px-2 py-0.5 rounded-full">{gameType}</span>
+                  <span className="text-[10px] bg-[#242428] text-[#888] px-2 py-0.5 rounded-full">{gameType === 'slobodan' ? 'Slobodno' : gameType === '3na3' ? '3 na 3' : gameType}</span>
                   <span className="text-[10px] bg-[#242428] text-[#888] px-2 py-0.5 rounded-full">{level}</span>
                   {maxPlayers && <span className="text-[10px] bg-[#242428] text-[#888] px-2 py-0.5 rounded-full">max {maxPlayers}</span>}
                 </div>

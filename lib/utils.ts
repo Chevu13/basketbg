@@ -23,14 +23,29 @@ export function formatChatTime(dateStr: string): string {
   return format(new Date(dateStr), 'HH:mm')
 }
 
+/** Fiksna pretpostavljena dužina igre (2h) — koristi se svuda: konflikti termina, status "Završeno", itd. */
+export const GATHERING_DURATION_MIN = 120
+
 /** Minutes until (positive) or since (negative) the given ISO datetime. */
 export function minutesUntil(dateStr: string): number {
   return Math.round((new Date(dateStr).getTime() - Date.now()) / 60000)
 }
 
-/** Short countdown label used on gathering cards, e.g. "Za 18 min", "Igra u toku". */
+/** Da li je igra već završena (prošlo je 2h od početka). */
+export function isGatheringEnded(dateStr: string): boolean {
+  return minutesUntil(dateStr) <= -GATHERING_DURATION_MIN
+}
+
+/** Da li igra počinje u narednih N minuta (za "uskoro počinje" isticanje na mapi i sl). */
+export function isStartingWithin(dateStr: string, minutes: number): boolean {
+  const diff = minutesUntil(dateStr)
+  return diff > 0 && diff <= minutes
+}
+
+/** Short countdown label used on gathering cards, e.g. "Za 18 min", "Igra u toku", "Završeno". */
 export function formatCountdown(dateStr: string): string {
   const diff = minutesUntil(dateStr)
+  if (diff <= -GATHERING_DURATION_MIN) return 'Završeno'
   if (diff <= 0) return 'Igra u toku'
   if (diff < 60) return `Za ${diff} min`
   const h = Math.floor(diff / 60)

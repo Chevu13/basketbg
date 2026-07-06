@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import type { Court, Gathering } from '@/types'
 import { useAuth } from '@/components/layout/AuthProvider'
-import CourtMapEmbed from '@/components/map/CourtMapEmbed'
+import dynamic from 'next/dynamic'
+const CourtMapEmbed = dynamic(() => import('@/components/map/CourtMapEmbed'), { ssr: false })
 import GatheringCard from '@/components/gathering/GatheringCard'
 import GatheringCardSkeleton from '@/components/gathering/GatheringCardSkeleton'
 import CourtChat from '@/components/chat/CourtChat'
@@ -163,11 +164,6 @@ export default function CourtPage({ params }: Props) {
         </button>
       </div>
 
-      {/* Map */}
-      <div className="px-4 py-3">
-        <CourtMapEmbed lat={court.lat} lng={court.lng} name={court.name} />
-      </div>
-
       {/* Tabs */}
       <div className="flex border-b border-court-border mx-4">
         <button
@@ -235,6 +231,11 @@ export default function CourtPage({ params }: Props) {
         )}
 
         {tab === 'chat' && <CourtChat courtId={id} />}
+      </div>
+
+      {/* Map — ide posle zida terena/chata */}
+      <div className="px-4 py-3">
+        <CourtMapEmbed lat={court.lat} lng={court.lng} name={court.name} />
       </div>
     </div>
   )

@@ -1,5 +1,8 @@
 'use client'
 
+import { MapContainer, TileLayer, Marker } from 'react-leaflet'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import { ExternalLink } from 'lucide-react'
 
 type Props = {
@@ -8,36 +11,43 @@ type Props = {
   name: string
 }
 
+function pinIcon() {
+  return L.divIcon({
+    className: '',
+    html: `<div style="position:relative;width:28px;height:28px;">
+             <div style="position:absolute;inset:0;border-radius:9999px;background:rgba(255,107,0,.18);"></div>
+             <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:9999px;background:#FF6B00;box-shadow:0 0 0 3px rgba(255,107,0,.25),0 2px 8px rgba(255,107,0,.4);"></div>
+           </div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  })
+}
+
 export default function CourtMapEmbed({ lat, lng, name }: Props) {
   const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 
   return (
-    <div className="relative">
-      {apiKey && apiKey !== 'placeholder' ? (
-        <iframe
-          width="100%"
-          height="160"
-          style={{ border: 0, borderRadius: 12 }}
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          src={`https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${lat},${lng}&zoom=16&maptype=roadmap`}
+    <div className="relative rounded-xl overflow-hidden border border-court-border" style={{ height: 160 }}>
+      <MapContainer
+        center={[lat, lng]}
+        zoom={16}
+        scrollWheelZoom={false}
+        zoomControl={true}
+        attributionControl={false}
+        style={{ width: '100%', height: '100%', background: '#1A1A2E' }}
+      >
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; OpenStreetMap &copy; CARTO'
         />
-      ) : (
-        <div className="w-full h-40 rounded-xl bg-[#161618] border border-[rgba(255,255,255,.07)] flex flex-col items-center justify-center gap-2">
-          <svg viewBox="0 0 24 24" fill="none" className="w-8 h-8 text-[#333]">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="currentColor" strokeWidth="1.5"/>
-            <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="1.5"/>
-          </svg>
-          <p className="text-[#555] text-xs">{name}</p>
-          <p className="text-[#333] text-[10px]">{lat.toFixed(4)}, {lng.toFixed(4)}</p>
-        </div>
-      )}
+        <Marker position={[lat, lng]} icon={pinIcon()} />
+      </MapContainer>
+
       <a
         href={mapsUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="absolute bottom-2 right-2 bg-[#161618]/90 backdrop-blur-sm border border-[rgba(255,255,255,.09)] rounded-lg px-2.5 py-1.5 text-xs text-[#888] flex items-center gap-1.5 hover:text-white transition-colors"
+        className="absolute bottom-2 right-2 z-[1000] bg-[#161618]/90 backdrop-blur-sm border border-[rgba(255,255,255,.09)] rounded-lg px-2.5 py-1.5 text-xs text-[#888] flex items-center gap-1.5 hover:text-white transition-colors"
       >
         <ExternalLink className="w-3 h-3" />
         Otvori mapu

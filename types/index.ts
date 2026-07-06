@@ -38,7 +38,7 @@ export type CourtFollower = {
   created_at: string
 }
 
-export type GameType = '3x3' | '5x5' | 'slobodan'
+export type GameType = '3x3' | '3na3' | '5x5' | 'slobodan'
 export type GameLevel = 'rekreativno' | 'srednji' | 'jak'
 
 export type Gathering = {
