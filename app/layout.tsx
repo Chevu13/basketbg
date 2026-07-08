@@ -6,13 +6,13 @@ import TopBar from '@/components/layout/TopBar'
 import AuthProvider from '@/components/layout/AuthProvider'
 
 export const metadata: Metadata = {
-  title: 'CrossCourt – Ko igra večeras?',
+  title: 'CrossCourt – Ko je sledeći?',
   description: 'Pronađi gde se danas igra pikap basket u Beogradu',
   manifest: '/manifest.json',
   icons: { icon: '/favicon.ico', apple: '/icon-192.png' },
   openGraph: {
     title: 'CrossCourt',
-    description: 'Ko igra večeras? Pronađi pikap basket u Beogradu.',
+    description: 'Ko je sledeći? Pronađi pikap basket u Beogradu.',
     type: 'website',
   },
 }

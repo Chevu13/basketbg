@@ -145,7 +145,7 @@ export default function HomePage() {
             {new Date().toLocaleDateString('sr-Latn', { weekday: 'long', day: 'numeric', month: 'long' })}
           </div>
           <div className="font-display font-black text-[32px] leading-[.95] tracking-tight">
-            Ko igra<br /><span className="text-orange-500">večeras?</span>
+            Ko je<br /><span className="text-orange-500">sledeći?</span>
           </div>
         </div>
         <button className="flex items-center gap-1.5 bg-court-card border border-court-border rounded-full pl-2 pr-2.5 py-1.5 flex-shrink-0 mt-0.5">

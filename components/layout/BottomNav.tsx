@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { MapPin, Home, PlusCircle, User, Shield } from 'lucide-react'
+import { MapPin, Home, PlusCircle, User, Shield, Users } from 'lucide-react'
 import { useAuth } from './AuthProvider'
 import { cn } from '@/lib/utils'
 
@@ -10,6 +10,7 @@ const navItems = [
   { href: '/', icon: Home, label: 'Početna' },
   { href: '/courts', icon: MapPin, label: 'Tereni' },
   { href: '/gatherings/new', icon: PlusCircle, label: 'Novo', highlight: true },
+  { href: '/community', icon: Users, label: 'Zajednica' },
   { href: '/profile', icon: User, label: 'Profil' },
 ]
 

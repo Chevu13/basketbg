@@ -135,7 +135,6 @@ export default function ProfilePage() {
     await supabase.auth.signOut()
     toast.success('Odjavio si se')
     router.push('/')
-    router.refresh()
   }
 
   if (!profile) return (

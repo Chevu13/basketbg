@@ -66,7 +66,6 @@ export default function RegisterPage() {
 
     toast.success('Dobrodošao u CrossCourt! 🏀')
     router.push('/')
-    router.refresh()
   }
 
   const inputClass = "w-full bg-court-card border border-court-border rounded-xl px-4 py-3 text-white placeholder-court-text2 text-sm focus:outline-none focus:border-orange-500/60 focus:ring-1 focus:ring-orange-500/20 transition-all"

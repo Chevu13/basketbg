@@ -29,7 +29,6 @@ function LoginForm() {
     } else {
       toast.success('Dobrodošao nazad! 🏀')
       router.push(redirect)
-      router.refresh()
     }
     setLoading(false)
   }
