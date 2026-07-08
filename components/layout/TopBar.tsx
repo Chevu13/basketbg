@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { Bell, BellDot } from 'lucide-react'
 import { useAuth } from './AuthProvider'
 import { createClient } from '@/lib/supabase'
-import { getInitials } from '@/lib/utils'
+import PlayerAvatar from '@/components/ui/PlayerAvatar'
 
 export default function TopBar() {
   const { user, profile } = useAuth()
@@ -34,16 +34,9 @@ export default function TopBar() {
     <header className="fixed top-0 left-0 right-0 z-50 max-w-md mx-auto">
       <div className="flex items-center justify-between px-4 h-14 bg-court-bg/95 backdrop-blur-sm border-b border-court-border">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center flex-shrink-0">
-            <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
-              <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="1.5" />
-              <path d="M12 2C9 5.5 9 18.5 12 22" stroke="white" strokeWidth="1.5" fill="none" />
-              <path d="M12 2C15 5.5 15 18.5 12 22" stroke="white" strokeWidth="1.5" fill="none" />
-              <line x1="2.2" y1="12" x2="21.8" y2="12" stroke="white" strokeWidth="1.5" />
-            </svg>
-          </div>
-          <span className="font-display font-black text-xl tracking-wider uppercase">
-            Basket<span className="text-orange-500">BG</span>
+          <img src="/brand/crosscourt-mark-dark.png" alt="CrossCourt" className="w-8 h-8 object-contain flex-shrink-0" />
+          <span className="font-display font-black text-xl tracking-wider uppercase leading-none">
+            Cross<span className="text-orange-500">Court</span>
           </span>
         </Link>
 
@@ -62,14 +55,14 @@ export default function TopBar() {
                   <Bell className="w-5 h-5 text-court-text" />
                 )}
               </Link>
-              <Link href="/profile" className="w-8 h-8 rounded-full bg-court-card2 border border-white/10 flex items-center justify-center flex-shrink-0">
-                {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt="" className="w-full h-full object-cover rounded-full" />
-                ) : (
-                  <span className="font-display font-bold text-[11px] text-court-text">
-                    {getInitials(profile?.full_name, profile?.username ?? '?')}
-                  </span>
-                )}
+              <Link href="/profile" className="flex-shrink-0">
+                <PlayerAvatar
+                  url={profile?.avatar_url}
+                  fullName={profile?.full_name}
+                  username={profile?.username}
+                  size={32}
+                  className="border border-white/10"
+                />
               </Link>
             </>
           ) : (

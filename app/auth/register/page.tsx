@@ -48,7 +48,7 @@ export default function RegisterPage() {
     })
 
     if (error) {
-      console.error('[BasketBG] signup error:', error)
+      console.error('[CrossCourt] signup error:', error)
       toast.error(error.message === 'User already registered' ? 'Email već registrovan' : `Greška: ${error.message}`)
       setLoading(false)
       return
@@ -64,7 +64,7 @@ export default function RegisterPage() {
       return
     }
 
-    toast.success('Dobrodošao u BasketBG! 🏀')
+    toast.success('Dobrodošao u CrossCourt! 🏀')
     router.push('/')
     router.refresh()
   }

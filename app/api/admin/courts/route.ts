@@ -24,6 +24,21 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ data }, { status: 201 })
 }
 
+export async function PATCH(request: NextRequest) {
+  const supabase = createRouteClient()
+  const session = await requireAdmin(supabase)
+  if (!session) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const { id, ...updates } = await request.json()
+  if (!id) return NextResponse.json({ error: 'Nedostaje id terena' }, { status: 400 })
+  if (updates.lat !== undefined && Number.isNaN(updates.lat)) return NextResponse.json({ error: 'Nevalidna lat' }, { status: 400 })
+  if (updates.lng !== undefined && Number.isNaN(updates.lng)) return NextResponse.json({ error: 'Nevalidna lng' }, { status: 400 })
+
+  const { data, error } = await supabase.from('courts').update(updates).eq('id', id).select().single()
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+  return NextResponse.json({ data })
+}
+
 export async function DELETE(request: NextRequest) {
   const supabase = createRouteClient()
   const session = await requireAdmin(supabase)

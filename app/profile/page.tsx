@@ -116,7 +116,7 @@ export default function ProfilePage() {
       await refreshProfile()
       toast.success('Slika ažurirana!')
     } catch (err: any) {
-      console.error('[BasketBG] avatar upload error:', err)
+      console.error('[CrossCourt] avatar upload error:', err)
       const msg = err?.message || err?.error_description || ''
       if (/bucket/i.test(msg)) {
         toast.error('Bucket za avatare ne postoji — pokreni avatars-storage.sql u Supabase')

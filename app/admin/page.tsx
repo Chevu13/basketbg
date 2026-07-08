@@ -6,6 +6,8 @@ import { Shield, Check, X, Trash2, MapPin, Plus } from 'lucide-react'
 import { formatGatheringTime, formatRelativeTime, cn } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
+const LocationPicker = dynamic(() => import('@/components/map/LocationPicker'), { ssr: false })
 
 type AdminTab = 'suggestions' | 'courts' | 'gatherings' | 'users'
 
@@ -23,6 +25,8 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
   const [newCourt, setNewCourt] = useState(emptyNewCourt)
+  const [editingLocationId, setEditingLocationId] = useState<string | null>(null)
+  const [editingLatLng, setEditingLatLng] = useState<{ lat: number; lng: number } | null>(null)
 
   useEffect(() => {
     if (!authLoading && profile && !profile.is_admin) { router.push('/'); return }
@@ -56,6 +60,21 @@ export default function AdminPage() {
     })
     if (res.ok) { toast.success('Obrisano'); fetchAll() }
     else toast.error('Greška')
+  }
+
+  const handleUpdateCourtLocation = async (id: string) => {
+    if (!editingLatLng) { toast.error('Klikni na mapi da izabereš lokaciju'); return }
+    const res = await fetch('/api/admin/courts', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, lat: editingLatLng.lat, lng: editingLatLng.lng }),
+    })
+    if (res.ok) {
+      toast.success('Lokacija ažurirana!')
+      setEditingLocationId(null)
+      setEditingLatLng(null)
+      fetchAll()
+    } else toast.error('Greška')
   }
 
   const handleDeleteCourt = async (id: string) => {
@@ -208,12 +227,11 @@ export default function AdminPage() {
                   onChange={e => setNewCourt(prev => ({ ...prev, name: e.target.value }))} className={inputClass} />
                 <input type="text" placeholder="Adresa" value={newCourt.address}
                   onChange={e => setNewCourt(prev => ({ ...prev, address: e.target.value }))} className={inputClass} />
-                <div className="grid grid-cols-2 gap-2">
-                  <input type="text" placeholder="Lat (44.xxx)" value={newCourt.lat}
-                    onChange={e => setNewCourt(prev => ({ ...prev, lat: e.target.value }))} className={inputClass} />
-                  <input type="text" placeholder="Lng (20.xxx)" value={newCourt.lng}
-                    onChange={e => setNewCourt(prev => ({ ...prev, lng: e.target.value }))} className={inputClass} />
-                </div>
+                <LocationPicker
+                  lat={newCourt.lat ? parseFloat(newCourt.lat) : null}
+                  lng={newCourt.lng ? parseFloat(newCourt.lng) : null}
+                  onChange={(lat, lng) => setNewCourt(prev => ({ ...prev, lat: lat.toString(), lng: lng.toString() }))}
+                />
 
                 {/* Outdoor/Indoor toggle — previously missing, defaults silently applied */}
                 <div className="grid grid-cols-2 gap-2">
@@ -245,15 +263,41 @@ export default function AdminPage() {
             )}
             {(data.courts ?? []).length === 0 && <Empty text="Nema terena" />}
             {(data.courts ?? []).map((c: any) => (
-              <div key={c.id} className="bg-court-card border border-court-border rounded-xl p-4 flex items-start gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-white text-sm">{c.name}</p>
-                  <p className="text-court-text text-xs truncate">{c.address}</p>
-                  <p className="text-court-text2 text-[10px] mt-0.5">{c.surface} · {c.hoops_count} koša · {c.is_outdoor ? 'Outdoor' : 'Indoor'}</p>
+              <div key={c.id} className="bg-court-card border border-court-border rounded-xl p-4 flex flex-col gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-white text-sm">{c.name}</p>
+                    <p className="text-court-text text-xs truncate">{c.address}</p>
+                    <p className="text-court-text2 text-[10px] mt-0.5">{c.surface} · {c.hoops_count} koša · {c.is_outdoor ? 'Outdoor' : 'Indoor'}</p>
+                    <p className="text-court-text2 text-[10px] mt-0.5">📍 {c.lat?.toFixed(5)}, {c.lng?.toFixed(5)}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (editingLocationId === c.id) { setEditingLocationId(null); setEditingLatLng(null) }
+                      else { setEditingLocationId(c.id); setEditingLatLng({ lat: c.lat, lng: c.lng }) }
+                    }}
+                    className={cn('w-8 h-8 flex items-center justify-center rounded-lg transition-all flex-shrink-0',
+                      editingLocationId === c.id ? 'text-orange-500 bg-orange-500/10' : 'text-court-text2 hover:text-orange-500 hover:bg-orange-500/10')}
+                  >
+                    <MapPin className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={() => handleDeleteCourt(c.id)} className="w-8 h-8 flex items-center justify-center text-court-text2 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all flex-shrink-0">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-                <button onClick={() => handleDeleteCourt(c.id)} className="w-8 h-8 flex items-center justify-center text-court-text2 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all flex-shrink-0">
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+
+                {editingLocationId === c.id && (
+                  <div className="flex flex-col gap-2 pt-1 border-t border-court-border">
+                    <LocationPicker
+                      lat={editingLatLng?.lat ?? c.lat}
+                      lng={editingLatLng?.lng ?? c.lng}
+                      onChange={(lat, lng) => setEditingLatLng({ lat, lng })}
+                    />
+                    <button onClick={() => handleUpdateCourtLocation(c.id)} className="h-9 bg-orange-500 text-white font-semibold rounded-xl text-sm">
+                      Sačuvaj lokaciju
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </>

@@ -7,6 +7,7 @@ import { useAuth } from '@/components/layout/AuthProvider'
 import { Send, LogIn } from 'lucide-react'
 import Link from 'next/link'
 import { formatChatTime, getInitials } from '@/lib/utils'
+import PlayerAvatar from '@/components/ui/PlayerAvatar'
 import { cn } from '@/lib/utils'
 
 type Props = { courtId: string }
@@ -98,13 +99,18 @@ export default function CourtChat({ courtId }: Props) {
               className={cn('flex items-end gap-2', isOwn && 'flex-row-reverse')}
             >
               {/* Avatar */}
-              <div className="w-7 h-7 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center flex-shrink-0 text-xs font-bold text-orange-500 overflow-hidden">
-                {msg.profile?.avatar_url ? (
-                  <img src={msg.profile.avatar_url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  msg.profile ? getInitials(msg.profile.full_name, msg.profile.username) : '?'
-                )}
-              </div>
+              <Link
+                href={msg.profile?.username ? `/players/${msg.profile.username}` : '#'}
+                onClick={(e) => { if (!msg.profile?.username) e.preventDefault() }}
+                className="flex-shrink-0"
+              >
+                <PlayerAvatar
+                  url={msg.profile?.avatar_url}
+                  fullName={msg.profile?.full_name}
+                  username={msg.profile?.username}
+                  size={28}
+                />
+              </Link>
               {/* Bubble */}
               <div className={cn(
                 'max-w-[78%] rounded-2xl px-3.5 py-2.5',
@@ -113,9 +119,13 @@ export default function CourtChat({ courtId }: Props) {
                   : 'bg-court-card border border-court-border rounded-bl-sm'
               )}>
                 {!isOwn && (
-                  <p className="text-[10px] font-semibold text-orange-400 mb-0.5">
+                  <Link
+                    href={msg.profile?.username ? `/players/${msg.profile.username}` : '#'}
+                    onClick={(e) => { if (!msg.profile?.username) e.preventDefault() }}
+                    className="text-[10px] font-semibold text-orange-400 mb-0.5 block hover:underline w-fit"
+                  >
                     {msg.profile?.username ?? 'Nepoznat'}
-                  </p>
+                  </Link>
                 )}
                 <p className="text-sm leading-snug">{msg.content}</p>
                 <p className={cn('text-[10px] mt-0.5', isOwn ? 'text-white/60' : 'text-court-text')}>

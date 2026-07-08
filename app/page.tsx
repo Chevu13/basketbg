@@ -74,8 +74,8 @@ export default function HomePage() {
       supabase.from('courts').select('*').eq('is_approved', true).order('name'),
     ])
 
-    if (gErr) console.error('[BasketBG] gatherings fetch error:', gErr.message)
-    if (cErr) console.error('[BasketBG] courts fetch error:', cErr.message)
+    if (gErr) console.error('[CrossCourt] gatherings fetch error:', gErr.message)
+    if (cErr) console.error('[CrossCourt] courts fetch error:', cErr.message)
     setFetchError(gErr?.message || cErr?.message || null)
 
     if (gData) {

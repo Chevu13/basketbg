@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Politika privatnosti — BasketBG',
+  title: 'Politika privatnosti — CrossCourt',
 }
 
 export default function PrivacyPolicyPage() {
@@ -12,7 +12,7 @@ export default function PrivacyPolicyPage() {
         <section>
           <h2 className="text-white font-semibold text-base mb-2">1. Koje podatke prikupljamo</h2>
           <p>
-            BasketBG prikuplja sledeće podatke kada napraviš nalog i koristiš aplikaciju:
+            CrossCourt prikuplja sledeće podatke kada napraviš nalog i koristiš aplikaciju:
           </p>
           <ul className="list-disc list-inside mt-2 space-y-1">
             <li>Email adresa i lozinka (za prijavu i registraciju)</li>
@@ -64,8 +64,8 @@ export default function PrivacyPolicyPage() {
           <h2 className="text-white font-semibold text-base mb-2">6. Kontakt</h2>
           <p>
             Za sva pitanja u vezi sa privatnošću ili zahteve za brisanje podataka, piši na:{' '}
-            <a href="mailto:kontakt@basketbg.rs" className="text-orange-500 underline">
-              kontakt@basketbg.rs
+            <a href="mailto:kontakt@crosscourt.rs" className="text-orange-500 underline">
+              kontakt@crosscourt.rs
             </a>
           </p>
         </section>

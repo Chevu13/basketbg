@@ -1,4 +1,4 @@
-# BasketBG — Setup Guide
+# CrossCourt — Setup Guide
 
 ## 1. Supabase
 

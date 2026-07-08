@@ -1,7 +1,7 @@
 {
-  "name": "BasketBG",
-  "short_name": "BasketBG",
-  "description": "Pronađi gde se danas igra pikap basket u Beogradu",
+  "name": "CrossCourt",
+  "short_name": "CrossCourt",
+  "description": "Got next? Pronađi gde se danas igra pikap basket u Beogradu",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0C0C0E",

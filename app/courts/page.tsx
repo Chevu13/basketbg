@@ -34,7 +34,7 @@ export default function CourtsPage() {
       if (!res.ok) throw new Error(json.error || 'Greška pri učitavanju')
       setCourts(json.data ?? [])
     } catch (e: any) {
-      console.error('[BasketBG] courts fetch error:', e.message)
+      console.error('[CrossCourt] courts fetch error:', e.message)
       setFetchError(e.message)
     }
     setLoading(false)

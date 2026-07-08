@@ -1,5 +1,5 @@
 -- ============================================================
--- BasketBG: Avatar storage bucket
+-- CrossCourt: Avatar storage bucket
 -- Pokreni ceo fajl u Supabase → SQL Editor → Run
 -- ============================================================
 

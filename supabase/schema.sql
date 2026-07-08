@@ -1,5 +1,5 @@
 -- ============================================================
--- BasketBG – Kompletna Supabase SQL Šema v2
+-- CrossCourt – Kompletna Supabase SQL Šema v2
 -- Pokreni u: supabase.com → SQL Editor → Run
 -- ============================================================
 

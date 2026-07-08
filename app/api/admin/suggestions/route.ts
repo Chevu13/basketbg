@@ -37,7 +37,7 @@ export async function PATCH(request: NextRequest) {
         user_id: suggestion.submitted_by,
         type: 'court_approved',
         title: 'Tvoj predlog odobren!',
-        body: `${suggestion.name} je dodat na mapu BasketBG.`,
+        body: `${suggestion.name} je dodat na mapu CrossCourt.`,
       })
     }
   }

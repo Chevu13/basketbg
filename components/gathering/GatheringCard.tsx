@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { MapPin, Check } from 'lucide-react'
 import type { Gathering } from '@/types'
 import { formatCountdown, minutesUntil, isGatheringEnded, getInitials, formatDistance } from '@/lib/utils'
+import PlayerAvatar from '@/components/ui/PlayerAvatar'
 import { useAuth } from '@/components/layout/AuthProvider'
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -17,7 +19,6 @@ type Props = {
   variant?: 'full' | 'compact'
 }
 
-const AVATAR_COLORS = ['#2C6BED', '#6E40C9', '#E6474A', '#0E9E71', '#B05A11', '#7A6500', '#1A7FBF', '#9B2335']
 
 const LEVEL_LABEL: Record<string, string> = {
   jak: '🔥 Napredni',
@@ -109,6 +110,12 @@ function CourtPhotoFallback({ name }: { name: string }) {
 }
 
 export default function GatheringCard({ gathering, onUpdate, variant = 'full' }: Props) {
+  const router = useRouter()
+  const goToOrganizer = (e: React.MouseEvent, username?: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (username) router.push(`/players/${username}`)
+  }
   const { user } = useAuth()
   const [attending, setAttending] = useState(gathering.is_attending ?? false)
   const [count, setCount] = useState(gathering.attendees_count ?? 0)
@@ -207,7 +214,13 @@ export default function GatheringCard({ gathering, onUpdate, variant = 'full' }:
                 {court?.name ?? 'Teren'}
               </div>
               <div className="text-xs text-white/60 font-medium mt-0.5">
-                Organizator: {creator?.full_name || creator?.username || 'Nepoznat'}
+                Organizator:{' '}
+                <span
+                  onClick={(e) => goToOrganizer(e, creator?.username)}
+                  className="hover:underline hover:text-white/90"
+                >
+                  {creator?.full_name || creator?.username || 'Nepoznat'}
+                </span>
               </div>
             </div>
           </div>
@@ -220,7 +233,12 @@ export default function GatheringCard({ gathering, onUpdate, variant = 'full' }:
             <div className="flex items-start justify-between gap-2 mb-3">
               <div className="min-w-0">
                 <p className="text-white font-semibold text-sm leading-snug line-clamp-1">{gathering.title}</p>
-                <p className="text-court-text text-xs mt-0.5">Organizator: {creator?.full_name || creator?.username || 'Nepoznat'}</p>
+                <p className="text-court-text text-xs mt-0.5">
+                  Organizator:{' '}
+                  <span onClick={(e) => goToOrganizer(e, creator?.username)} className="hover:underline hover:text-white">
+                    {creator?.full_name || creator?.username || 'Nepoznat'}
+                  </span>
+                </p>
               </div>
               <StatusBadge gathering={{ ...gathering, attendees_count: count }} />
             </div>
@@ -279,14 +297,15 @@ export default function GatheringCard({ gathering, onUpdate, variant = 'full' }:
               disabled={attendees.length === 0}
             >
               {attendees.slice(0, 4).map((a, i) => (
-                <div
-                  key={a.user_id ?? i}
-                  className="w-7 h-7 rounded-full border-[2.5px] border-court-card overflow-hidden flex items-center justify-center font-display font-bold text-[10px] text-white flex-shrink-0"
-                  style={{ background: a.profile?.avatar_url ? undefined : AVATAR_COLORS[i % AVATAR_COLORS.length], marginLeft: i === 0 ? 0 : -8 }}
-                >
-                  {a.profile?.avatar_url
-                    ? <img src={a.profile.avatar_url} alt="" className="w-full h-full object-cover" />
-                    : getInitials(null, a.profile?.username ?? '?')}
+                <div key={a.user_id ?? i} style={{ marginLeft: i === 0 ? 0 : -8, zIndex: 4 - i, position: 'relative' }}>
+                  <PlayerAvatar
+                    url={a.profile?.avatar_url}
+                    fullName={a.profile?.full_name}
+                    username={a.profile?.username}
+                    size={28}
+                    colorSeed={i}
+                    ring
+                  />
                 </div>
               ))}
               {attendees.length > 4 && (
@@ -347,7 +366,7 @@ export default function GatheringCard({ gathering, onUpdate, variant = 'full' }:
 
     {showAttendees && (
       <div
-        className="fixed inset-0 z-50 bg-black/70 flex items-end sm:items-center justify-center p-0 sm:p-4"
+        className="fixed inset-0 z-[2000] bg-black/70 flex items-end sm:items-center justify-center p-0 sm:p-4"
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowAttendees(false) }}
       >
         <div
@@ -365,21 +384,25 @@ export default function GatheringCard({ gathering, onUpdate, variant = 'full' }:
               ✕
             </button>
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             {attendees.map((a, i) => (
-              <div key={a.user_id ?? i} className="flex items-center gap-3 py-2">
-                <div
-                  className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center font-display font-bold text-xs text-white flex-shrink-0"
-                  style={{ background: a.profile?.avatar_url ? undefined : AVATAR_COLORS[i % AVATAR_COLORS.length] }}
-                >
-                  {a.profile?.avatar_url
-                    ? <img src={a.profile.avatar_url} alt="" className="w-full h-full object-cover" />
-                    : getInitials(null, a.profile?.username ?? '?')}
-                </div>
+              <Link
+                key={a.user_id ?? i}
+                href={a.profile?.username ? `/players/${a.profile.username}` : '#'}
+                onClick={(e) => { e.stopPropagation(); if (!a.profile?.username) e.preventDefault() }}
+                className="flex items-center gap-3 py-2 -mx-1 px-1 rounded-lg hover:bg-white/5 transition-colors"
+              >
+                <PlayerAvatar
+                  url={a.profile?.avatar_url}
+                  fullName={a.profile?.full_name}
+                  username={a.profile?.username}
+                  size={40}
+                  colorSeed={i}
+                />
                 <span className="text-white text-sm font-medium">
                   {a.profile?.full_name || a.profile?.username || 'Igrač'}
                 </span>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

@@ -1,4 +1,4 @@
--- BasketBG: fix za 500 na /auth/v1/signup
+-- CrossCourt: fix za 500 na /auth/v1/signup
 -- Pokreni ceo fajl u Supabase → SQL Editor → Run
 
 CREATE OR REPLACE FUNCTION handle_new_user()
