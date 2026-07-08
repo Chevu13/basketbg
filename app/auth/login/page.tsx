@@ -37,7 +37,7 @@ function LoginForm() {
     if (!email) { toast.error('Prvo unesi svoj email'); return }
     setResetLoading(true)
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/login` : undefined,
+      redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/reset-password` : undefined,
     })
     setResetLoading(false)
     if (error) { toast.error(error.message); return }
