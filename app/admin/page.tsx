@@ -27,6 +27,7 @@ export default function AdminPage() {
   const [newCourt, setNewCourt] = useState(emptyNewCourt)
   const [editingLocationId, setEditingLocationId] = useState<string | null>(null)
   const [editingLatLng, setEditingLatLng] = useState<{ lat: number; lng: number } | null>(null)
+  const [editingAddress, setEditingAddress] = useState('')
 
   useEffect(() => {
     if (!authLoading && profile && !profile.is_admin) { router.push('/'); return }
@@ -67,12 +68,13 @@ export default function AdminPage() {
     const res = await fetch('/api/admin/courts', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, lat: editingLatLng.lat, lng: editingLatLng.lng }),
+      body: JSON.stringify({ id, lat: editingLatLng.lat, lng: editingLatLng.lng, address: editingAddress.trim() }),
     })
     if (res.ok) {
-      toast.success('Lokacija ažurirana!')
+      toast.success('Teren ažuriran!')
       setEditingLocationId(null)
       setEditingLatLng(null)
+      setEditingAddress('')
       fetchAll()
     } else toast.error('Greška')
   }
@@ -274,7 +276,7 @@ export default function AdminPage() {
                   <button
                     onClick={() => {
                       if (editingLocationId === c.id) { setEditingLocationId(null); setEditingLatLng(null) }
-                      else { setEditingLocationId(c.id); setEditingLatLng({ lat: c.lat, lng: c.lng }) }
+                      else { setEditingLocationId(c.id); setEditingLatLng({ lat: c.lat, lng: c.lng }); setEditingAddress(c.address ?? '') }
                     }}
                     className={cn('w-8 h-8 flex items-center justify-center rounded-lg transition-all flex-shrink-0',
                       editingLocationId === c.id ? 'text-orange-500 bg-orange-500/10' : 'text-court-text2 hover:text-orange-500 hover:bg-orange-500/10')}
@@ -288,13 +290,20 @@ export default function AdminPage() {
 
                 {editingLocationId === c.id && (
                   <div className="flex flex-col gap-2 pt-1 border-t border-court-border">
+                    <input
+                      type="text"
+                      placeholder="Tačna adresa (npr. Medak park, Beograd)"
+                      value={editingAddress}
+                      onChange={(e) => setEditingAddress(e.target.value)}
+                      className={inputClass}
+                    />
                     <LocationPicker
                       lat={editingLatLng?.lat ?? c.lat}
                       lng={editingLatLng?.lng ?? c.lng}
                       onChange={(lat, lng) => setEditingLatLng({ lat, lng })}
                     />
                     <button onClick={() => handleUpdateCourtLocation(c.id)} className="h-9 bg-orange-500 text-white font-semibold rounded-xl text-sm">
-                      Sačuvaj lokaciju
+                      Sačuvaj izmene
                     </button>
                   </div>
                 )}
