@@ -39,6 +39,7 @@ export default function CommunityPage() {
       const { data } = await supabase
         .from('profiles')
         .select('id, username, full_name, avatar_url, reputation:user_reputation(arrivals_count, no_show_count, gatherings_created, reputation_score)')
+        .eq('is_admin', false)
         .limit(200)
 
       const mapped: Row[] = (data ?? []).map((p: any) => ({
