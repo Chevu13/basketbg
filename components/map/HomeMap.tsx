@@ -89,7 +89,7 @@ export default function HomeMap({ courts, gatherings, userLocation }: Props) {
     : points[0] ?? [44.7866, 20.4489] // Beograd centar, fallback
 
   return (
-    <div className="w-full h-52 rounded-2xl overflow-hidden border border-court-border bg-court-card relative">
+    <div className="w-full h-52 rounded-2xl overflow-hidden border border-court-border bg-court-card relative isolate">
       <MapContainer
         center={center}
         zoom={13}

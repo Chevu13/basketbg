@@ -31,7 +31,7 @@ export default function TopBar() {
   }, [user, pathname])
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 max-w-md mx-auto">
+    <header className="fixed top-0 left-0 right-0 z-[1100] max-w-md mx-auto">
       <div className="flex items-center justify-between px-4 h-14 bg-court-bg/95 backdrop-blur-sm border-b border-court-border">
         <Link href="/" className="flex items-center gap-2">
           <img src="/brand/crosscourt-mark-dark.png" alt="CrossCourt" className="w-8 h-8 object-contain flex-shrink-0" />

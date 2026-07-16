@@ -23,7 +23,7 @@ export default function BottomNav() {
     : navItems
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 max-w-md mx-auto safe-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-[1100] max-w-md mx-auto safe-bottom">
       <div className="flex items-center justify-around bg-court-card/95 backdrop-blur-md border-t border-court-border px-2 pt-2 pb-safe">
         {items.map(({ href, icon: Icon, label, highlight }) => {
           const active = pathname === href || (href !== '/' && pathname.startsWith(href))

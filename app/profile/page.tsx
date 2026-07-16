@@ -303,8 +303,12 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* Logout */}
-      <div className="px-5 mt-4">
+      {/* Change password + Logout */}
+      <div className="px-5 mt-4 flex flex-col gap-2.5">
+        <Link href="/profile/change-password"
+          className="w-full flex items-center justify-center gap-2 py-3 border border-court-border rounded-xl text-court-text hover:text-white hover:border-orange-500/40 transition-all text-sm font-medium">
+          <KeyRound className="w-4 h-4"/> Promeni lozinku
+        </Link>
         <button onClick={handleLogout}
           className="w-full flex items-center justify-center gap-2 py-3 border border-red-500/25 rounded-xl text-red-400 hover:bg-red-500/8 transition-all text-sm font-medium">
           <LogOut className="w-4 h-4"/> Odjavi se

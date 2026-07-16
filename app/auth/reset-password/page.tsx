@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { Lock, Eye, EyeOff, CheckCircle2 } from 'lucide-react'
+import Link from 'next/link'
 import toast from 'react-hot-toast'
 
 export default function ResetPasswordPage() {
@@ -11,6 +12,7 @@ export default function ResetPasswordPage() {
   const supabase = createClient()
 
   const [ready, setReady] = useState(false)      // da li Supabase klijent ima recovery sesiju
+  const [expired, setExpired] = useState(false)  // link istekao/nevažeći
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [showPass, setShowPass] = useState(false)
@@ -18,16 +20,29 @@ export default function ResetPasswordPage() {
   const [done, setDone] = useState(false)
 
   useEffect(() => {
-    // Kad korisnik stigne sa linka iz mejla, supabase-js iz URL hash-a
-    // (#access_token=...&type=recovery) sam uspostavi privremenu sesiju.
-    // Sačekamo taj event pre nego što dozvolimo unos nove lozinke.
+    // 1) Ako je Supabase vratio grešku u URL-u (istekao/iskorišćen link),
+    //    odmah prikaži jasno stanje umesto spinera.
+    const params = new URLSearchParams(window.location.search || window.location.hash.replace('#', '?'))
+    if (params.get('error') || params.get('error_code')) {
+      setExpired(true)
+      return
+    }
+
+    // 2) Kad korisnik stigne sa ispravnog linka, supabase-js iz URL-a
+    //    sam uspostavi privremenu sesiju. Sačekamo taj event.
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) setReady(true)
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY' || session) setReady(true)
     })
-    return () => subscription.unsubscribe()
+
+    // 3) Ako se sesija ne pojavi za 6s, link je gotovo sigurno nevažeći.
+    const timeout = setTimeout(() => {
+      setReady(r => { if (!r) setExpired(true); return r })
+    }, 6000)
+
+    return () => { subscription.unsubscribe(); clearTimeout(timeout) }
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,14 +75,31 @@ export default function ResetPasswordPage() {
     )
   }
 
+  if (expired) {
+    return (
+      <div className="min-h-[calc(100vh-56px)] flex flex-col items-center justify-center px-5 text-center animate-fade-in">
+        <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-5">
+          <Lock className="w-8 h-8 text-red-400" />
+        </div>
+        <h2 className="font-display font-black text-2xl uppercase text-white">Link je istekao</h2>
+        <p className="text-court-text text-sm mt-2 max-w-xs">
+          Link za reset lozinke je istekao ili je već iskorišćen. Zatraži nov — stiže za par sekundi.
+        </p>
+        <Link
+          href="/auth/forgot-password"
+          className="mt-6 h-12 px-8 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl text-sm flex items-center transition-all active:scale-95"
+        >
+          Pošalji mi nov link
+        </Link>
+      </div>
+    )
+  }
+
   if (!ready) {
     return (
       <div className="min-h-[calc(100vh-56px)] flex flex-col items-center justify-center px-5 text-center">
         <div className="w-6 h-6 border-2 border-court-muted border-t-orange-500 rounded-full animate-spin mb-4" />
-        <p className="text-court-text text-sm max-w-xs">
-          Proveravamo link za resetovanje lozinke... Ako ova stranica ostane ovako duže od par sekundi,
-          link je verovatno istekao — zatraži novi.
-        </p>
+        <p className="text-court-text text-sm max-w-xs">Proveravamo link za resetovanje lozinke...</p>
       </div>
     )
   }

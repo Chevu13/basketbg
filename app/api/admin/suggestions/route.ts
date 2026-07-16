@@ -29,6 +29,7 @@ export async function PATCH(request: NextRequest) {
         description: suggestion.description,
         is_outdoor: suggestion.is_outdoor,
         surface: suggestion.surface,
+        image_url: suggestion.image_url,
         is_approved: true,
         created_by: suggestion.submitted_by,
       })

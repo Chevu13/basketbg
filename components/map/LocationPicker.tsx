@@ -42,7 +42,7 @@ export default function LocationPicker({ lat, lng, onChange }: Props) {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="rounded-xl overflow-hidden border border-court-border" style={{ height: 220 }}>
+      <div className="rounded-xl overflow-hidden border border-court-border isolate" style={{ height: 220 }}>
         <MapContainer
           center={center}
           zoom={hasPoint ? 16 : 12}
