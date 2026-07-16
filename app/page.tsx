@@ -11,6 +11,7 @@ import CourtCard from '@/components/court/CourtCard'
 import dynamic from 'next/dynamic'
 const HomeMap = dynamic(() => import('@/components/map/HomeMap'), { ssr: false })
 import { Search, X } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 // Type filters are mutually exclusive within their own group (date, court-type),
 // so "Outdoor" + "Indoor" (or "Danas" + "Sutra") can never both be active —
@@ -44,6 +45,23 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
 
   const supabase = createClient()
+
+  // Supabase preusmerava greške iz auth linkova (npr. istekao link za reset lozinke)
+  // ovde na home stranicu sa ?error=...#error=... u URL-u. Prikaži jasnu poruku
+  // umesto da korisnik samo ćutke završi na home stranici bez objašnjenja.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search || window.location.hash.replace('#', '?'))
+    const errorCode = params.get('error_code')
+    if (errorCode === 'otp_expired') {
+      toast.error('Link je istekao ili je već iskorišćen. Zatraži nov link za reset lozinke.', { duration: 6000 })
+    } else if (params.get('error')) {
+      toast.error(params.get('error_description')?.replace(/\+/g, ' ') || 'Greška pri prijavi preko linka')
+    }
+    if (params.get('error')) {
+      window.history.replaceState(null, '', window.location.pathname)
+    }
+  }, [])
 
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(

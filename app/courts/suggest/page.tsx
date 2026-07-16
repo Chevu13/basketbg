@@ -1,12 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/layout/AuthProvider'
-import { MapPin, Type, FileText, Layers, CheckCircle2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase'
+import { MapPin, Type, FileText, Layers, CheckCircle2, ImagePlus, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
+const LocationPicker = dynamic(() => import('@/components/map/LocationPicker'), { ssr: false })
 
 const SURFACES = [
   {v:'asfalt',l:'Asfalt',i:'🏙️'},{v:'beton',l:'Beton',i:'🧱'},
@@ -26,7 +29,21 @@ export default function SuggestCourtPage() {
   const [surface, setSurface]     = useState('asfalt')
   const [isOutdoor, setIsOutdoor] = useState(true)
   const [description, setDesc]    = useState('')
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [loading, setLoading]     = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const supabase = createClient()
+
+  const handleImagePick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const looksLikeImage = file.type.startsWith('image/') || /\.(jpe?g|png|gif|webp|heic|heif)$/i.test(file.name)
+    if (!looksLikeImage) { toast.error('Izaberi sliku'); return }
+    if (file.size > 8 * 1024 * 1024) { toast.error('Slika je prevelika (max 8MB)'); return }
+    setImageFile(file)
+    setImagePreview(URL.createObjectURL(file))
+  }
 
   if (!user) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 px-5 text-center">
@@ -48,21 +65,42 @@ export default function SuggestCourtPage() {
     e.preventDefault()
     if (!name || !address || !lat || !lng) { toast.error('Popuni sva polja'); return }
     if (isNaN(parseFloat(lat)) || isNaN(parseFloat(lng))) { toast.error('Nevalidne koordinate'); return }
+    if (!imageFile) { toast.error('Slika terena je obavezna'); return }
     setLoading(true)
-    const res = await fetch('/api/courts/suggest', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name, address,
-        lat: parseFloat(lat), lng: parseFloat(lng),
-        description: description || null,
-        is_outdoor: isOutdoor,
-        surface,
-      }),
-    })
-    if (!res.ok) { toast.error('Greška'); setLoading(false); return }
-    setSubmitted(true)
-    setLoading(false)
+
+    try {
+      // 1) Upload slike u Storage
+      const ext = imageFile.name.split('.').pop()?.toLowerCase() || 'jpg'
+      const path = `${user!.id}/${Date.now()}.${ext}`
+      const { error: uploadErr } = await supabase.storage
+        .from('court-images')
+        .upload(path, imageFile, { cacheControl: '3600' })
+      if (uploadErr) throw new Error(`Upload slike: ${uploadErr.message}`)
+      const { data: pub } = supabase.storage.from('court-images').getPublicUrl(path)
+
+      // 2) Predlog sa slikom
+      const res = await fetch('/api/courts/suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name, address,
+          lat: parseFloat(lat), lng: parseFloat(lng),
+          description: description || null,
+          is_outdoor: isOutdoor,
+          surface,
+          image_url: pub.publicUrl,
+        }),
+      })
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}))
+        throw new Error(json.error || 'Greška pri slanju predloga')
+      }
+      setSubmitted(true)
+    } catch (err: any) {
+      toast.error(err?.message || 'Greška')
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (submitted) return (
@@ -102,16 +140,16 @@ export default function SuggestCourtPage() {
         </div>
 
         <div>
-          <Label icon={<MapPin className="w-4 h-4"/>} text="GPS koordinate" required/>
-          <div className="grid grid-cols-2 gap-3 mb-2">
-            <input type="text" value={lat} onChange={e => setLat(e.target.value)} placeholder="Lat (44.xxx)" required className={inputClass}/>
-            <input type="text" value={lng} onChange={e => setLng(e.target.value)} placeholder="Lng (20.xxx)" required className={inputClass}/>
-          </div>
+          <Label icon={<MapPin className="w-4 h-4"/>} text="Lokacija na mapi" required/>
+          <LocationPicker
+            lat={lat ? parseFloat(lat) : null}
+            lng={lng ? parseFloat(lng) : null}
+            onChange={(la, ln) => { setLat(la.toString()); setLng(ln.toString()) }}
+          />
           <button type="button" onClick={getGPS}
-            className="text-xs text-orange-500 flex items-center gap-1.5 hover:text-orange-400 transition-colors">
-            <MapPin className="w-3.5 h-3.5"/> Koristi moju lokaciju
+            className="text-xs text-orange-500 flex items-center gap-1.5 hover:text-orange-400 transition-colors mt-2">
+            <MapPin className="w-3.5 h-3.5"/> Koristi moju trenutnu lokaciju
           </button>
-          <p className="text-[#444] text-[11px] mt-1">Ili kopiraj sa Google Maps (desni klik → koordinate)</p>
         </div>
 
         <div>
@@ -138,6 +176,27 @@ export default function SuggestCourtPage() {
               </button>
             ))}
           </div>
+        </div>
+
+        <div>
+          <Label icon={<ImagePlus className="w-4 h-4"/>} text="Slika terena" required/>
+          {imagePreview ? (
+            <div className="relative rounded-xl overflow-hidden border border-[rgba(255,255,255,.07)]">
+              <img src={imagePreview} alt="" className="w-full h-44 object-cover" />
+              <button type="button"
+                onClick={() => { setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = '' }}
+                className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 backdrop-blur flex items-center justify-center text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <button type="button" onClick={() => fileInputRef.current?.click()}
+              className="w-full h-32 rounded-xl border border-dashed border-[rgba(255,255,255,.15)] flex flex-col items-center justify-center gap-2 text-[#555] hover:border-orange-500/50 hover:text-orange-500 transition-colors">
+              <ImagePlus className="w-6 h-6" />
+              <span className="text-xs">Dodaj fotografiju terena</span>
+            </button>
+          )}
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImagePick} />
         </div>
 
         <div>

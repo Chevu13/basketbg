@@ -28,6 +28,7 @@ export default function AdminPage() {
   const [editingLocationId, setEditingLocationId] = useState<string | null>(null)
   const [editingLatLng, setEditingLatLng] = useState<{ lat: number; lng: number } | null>(null)
   const [editingAddress, setEditingAddress] = useState('')
+  const [editingName, setEditingName] = useState('')
 
   useEffect(() => {
     if (!authLoading && profile && !profile.is_admin) { router.push('/'); return }
@@ -65,18 +66,23 @@ export default function AdminPage() {
 
   const handleUpdateCourtLocation = async (id: string) => {
     if (!editingLatLng) { toast.error('Klikni na mapi da izabereš lokaciju'); return }
+    if (!editingName.trim()) { toast.error('Ime terena ne može biti prazno'); return }
     const res = await fetch('/api/admin/courts', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, lat: editingLatLng.lat, lng: editingLatLng.lng, address: editingAddress.trim() }),
+      body: JSON.stringify({ id, name: editingName.trim(), lat: editingLatLng.lat, lng: editingLatLng.lng, address: editingAddress.trim() }),
     })
     if (res.ok) {
       toast.success('Teren ažuriran!')
       setEditingLocationId(null)
       setEditingLatLng(null)
       setEditingAddress('')
+      setEditingName('')
       fetchAll()
-    } else toast.error('Greška')
+    } else {
+      const json = await res.json().catch(() => ({}))
+      toast.error(json.error || 'Greška')
+    }
   }
 
   const handleDeleteCourt = async (id: string) => {
@@ -183,6 +189,9 @@ export default function AdminPage() {
             {(data.suggestions ?? []).length === 0 && <Empty text="Nema predloga" />}
             {(data.suggestions ?? []).map((s: any) => (
               <div key={s.id} className={cn('bg-court-card border border-court-border rounded-xl p-4', s.status !== 'pending' && 'opacity-50')}>
+                {s.image_url && (
+                  <img src={s.image_url} alt="" className="w-full h-36 object-cover rounded-lg mb-3" />
+                )}
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="flex-1">
                     <p className="font-semibold text-white text-sm">{s.name}</p>
@@ -276,7 +285,7 @@ export default function AdminPage() {
                   <button
                     onClick={() => {
                       if (editingLocationId === c.id) { setEditingLocationId(null); setEditingLatLng(null) }
-                      else { setEditingLocationId(c.id); setEditingLatLng({ lat: c.lat, lng: c.lng }); setEditingAddress(c.address ?? '') }
+                      else { setEditingLocationId(c.id); setEditingLatLng({ lat: c.lat, lng: c.lng }); setEditingAddress(c.address ?? ''); setEditingName(c.name ?? '') }
                     }}
                     className={cn('w-8 h-8 flex items-center justify-center rounded-lg transition-all flex-shrink-0',
                       editingLocationId === c.id ? 'text-orange-500 bg-orange-500/10' : 'text-court-text2 hover:text-orange-500 hover:bg-orange-500/10')}
@@ -290,6 +299,13 @@ export default function AdminPage() {
 
                 {editingLocationId === c.id && (
                   <div className="flex flex-col gap-2 pt-1 border-t border-court-border">
+                    <input
+                      type="text"
+                      placeholder="Ime terena"
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      className={inputClass}
+                    />
                     <input
                       type="text"
                       placeholder="Tačna adresa (npr. Medak park, Beograd)"

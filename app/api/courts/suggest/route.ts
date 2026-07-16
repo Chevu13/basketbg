@@ -9,10 +9,12 @@ export async function POST(request: NextRequest) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json()
-  const { name, address, lat, lng, description, is_outdoor, surface } = body
+  const { name, address, lat, lng, description, is_outdoor, surface, image_url } = body
 
   if (!name || !address || !lat || !lng)
     return NextResponse.json({ error: 'Nedostaju polja' }, { status: 400 })
+  if (!image_url)
+    return NextResponse.json({ error: 'Slika terena je obavezna' }, { status: 400 })
 
   const { data, error } = await supabase
     .from('court_suggestions')
@@ -20,6 +22,7 @@ export async function POST(request: NextRequest) {
       name, address, lat, lng, description,
       is_outdoor: is_outdoor ?? true,
       surface: surface ?? 'asfalt',
+      image_url,
       submitted_by: session.user.id,
     })
     .select().single()
