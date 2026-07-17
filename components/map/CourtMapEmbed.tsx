@@ -27,7 +27,7 @@ export default function CourtMapEmbed({ lat, lng, name }: Props) {
   const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`
 
   return (
-    <div className="relative rounded-xl overflow-hidden border border-court-border" style={{ height: 160 }}>
+    <div className="relative rounded-xl overflow-hidden border border-court-border isolate" style={{ height: 160 }}>
       <MapContainer
         center={[lat, lng]}
         zoom={16}

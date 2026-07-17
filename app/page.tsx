@@ -12,6 +12,7 @@ import dynamic from 'next/dynamic'
 const HomeMap = dynamic(() => import('@/components/map/HomeMap'), { ssr: false })
 import { Search, X } from 'lucide-react'
 import toast from 'react-hot-toast'
+import AndroidAppBanner from '@/components/layout/AndroidAppBanner'
 
 // Type filters are mutually exclusive within their own group (date, court-type),
 // so "Outdoor" + "Indoor" (or "Danas" + "Sutra") can never both be active —
@@ -171,6 +172,8 @@ export default function HomePage() {
           <span className="text-xs font-medium text-court-text">Beograd</span>
         </button>
       </div>
+
+      <AndroidAppBanner />
 
       {fetchError && (
         <div className="mx-[18px] mt-3 p-3 bg-red-500/10 border border-red-500/25 rounded-xl">

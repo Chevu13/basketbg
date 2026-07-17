@@ -6,7 +6,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { Court, Gathering } from '@/types'
 import { useEffect, useMemo } from 'react'
-import { isStartingWithin, minutesUntil } from '@/lib/utils'
+import { isStartingWithin, minutesUntil, isGatheringEnded } from '@/lib/utils'
 
 type Props = {
   courts: Court[]
@@ -19,7 +19,7 @@ type MarkerState = 'active' | 'soon' | 'idle'
 /** Da li teren ima igru koja je u toku, ili počinje u narednih 2h, ili ništa. */
 function courtMarkerState(court: Court, gatherings: Gathering[]): MarkerState {
   const courtGatherings = gatherings.filter(g => g.court_id === court.id)
-  if (courtGatherings.some(g => minutesUntil(g.gathering_time) <= 0)) return 'active'
+  if (courtGatherings.some(g => minutesUntil(g.gathering_time) <= 0 && !isGatheringEnded(g.gathering_time))) return 'active'
   if (courtGatherings.some(g => isStartingWithin(g.gathering_time, 120))) return 'soon'
   return 'idle'
 }
@@ -76,7 +76,7 @@ function FitBounds({ points }: { points: [number, number][] }) {
 
 export default function HomeMap({ courts, gatherings, userLocation }: Props) {
   const router = useRouter()
-  const activeCourts = useMemo(() => new Set(gatherings.filter(g => minutesUntil(g.gathering_time) <= 0).map(g => g.court_id)), [gatherings])
+  const activeCourts = useMemo(() => new Set(gatherings.filter(g => minutesUntil(g.gathering_time) <= 0 && !isGatheringEnded(g.gathering_time)).map(g => g.court_id)), [gatherings])
   const activeCount = courts.filter(c => activeCourts.has(c.id)).length
 
   const points: [number, number][] = useMemo(() => [
@@ -89,7 +89,7 @@ export default function HomeMap({ courts, gatherings, userLocation }: Props) {
     : points[0] ?? [44.7866, 20.4489] // Beograd centar, fallback
 
   return (
-    <div className="w-full h-52 rounded-2xl overflow-hidden border border-court-border bg-court-card relative">
+    <div className="w-full h-52 rounded-2xl overflow-hidden border border-court-border bg-court-card relative isolate">
       <MapContainer
         center={center}
         zoom={13}

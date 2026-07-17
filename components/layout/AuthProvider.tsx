@@ -53,6 +53,13 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       setSession(session)
       if (session?.user) fetchProfile(session.user.id)
       else setProfile(null)
+
+      // Klik na link iz mejla za reset lozinke uloguje korisnika privremenom
+      // (recovery) sesijom — bez obzira na koju stranicu ga link dovede,
+      // odmah ga vodimo na formu za unos nove lozinke.
+      if (_event === 'PASSWORD_RECOVERY' && window.location.pathname !== '/auth/reset-password') {
+        window.location.replace('/auth/reset-password')
+      }
     })
 
     return () => subscription.unsubscribe()

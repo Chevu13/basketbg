@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS gatherings (
   description     TEXT,
   gathering_time  TIMESTAMPTZ NOT NULL,
   max_players     INTEGER,
-  game_type       TEXT DEFAULT '5x5' CHECK (game_type IN ('3x3','5x5','slobodan')),
+  game_type       TEXT DEFAULT '5x5' CHECK (game_type IN ('3x3','3na3','5x5','slobodan')),
   level           TEXT DEFAULT 'rekreativno' CHECK (level IN ('rekreativno','srednji','jak')),
   is_active       BOOLEAN DEFAULT TRUE,
   created_at      TIMESTAMPTZ DEFAULT NOW(),

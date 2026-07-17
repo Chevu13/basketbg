@@ -4,7 +4,7 @@ import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
-import { Mail, Lock, Eye, EyeOff, MailCheck } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 function LoginForm() {
@@ -12,8 +12,6 @@ function LoginForm() {
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading]   = useState(false)
-  const [resetSent, setResetSent] = useState(false)
-  const [resetLoading, setResetLoading] = useState(false)
   const router       = useRouter()
   const searchParams = useSearchParams()
   const redirect     = searchParams.get('redirect') || '/'
@@ -31,32 +29,6 @@ function LoginForm() {
       router.push(redirect)
     }
     setLoading(false)
-  }
-
-  const handleForgotPassword = async () => {
-    if (!email) { toast.error('Prvo unesi svoj email'); return }
-    setResetLoading(true)
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/reset-password` : undefined,
-    })
-    setResetLoading(false)
-    if (error) { toast.error(error.message); return }
-    setResetSent(true)
-  }
-
-  if (resetSent) {
-    return (
-      <div className="min-h-[calc(100vh-56px)] flex flex-col items-center justify-center px-5 text-center animate-fade-in">
-        <div className="w-16 h-16 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mb-5">
-          <MailCheck className="w-8 h-8 text-orange-500" />
-        </div>
-        <h2 className="font-display font-black text-2xl uppercase text-white">Proveri email</h2>
-        <p className="text-court-text text-sm mt-2 max-w-xs">
-          Poslali smo link za reset lozinke na <strong className="text-white">{email}</strong>.
-        </p>
-        <button onClick={() => setResetSent(false)} className="mt-6 text-orange-500 text-sm font-semibold">Nazad na prijavu</button>
-      </div>
-    )
   }
 
   return (
@@ -86,10 +58,9 @@ function LoginForm() {
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="text-xs text-court-text uppercase tracking-widest font-semibold block">Lozinka</label>
-            <button type="button" onClick={handleForgotPassword} disabled={resetLoading}
-              className="text-xs text-orange-500 font-medium disabled:opacity-50">
-              {resetLoading ? 'Šaljem...' : 'Zaboravljena?'}
-            </button>
+            <Link href="/auth/forgot-password" className="text-xs text-orange-500 font-medium">
+              Zaboravljena?
+            </Link>
           </div>
           <div className="relative">
             <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-court-text2" />
