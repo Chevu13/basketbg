@@ -59,6 +59,7 @@ export default function ResetPasswordPage() {
       return
     }
     setDone(true)
+    sessionStorage.removeItem('cc_pending_recovery')
     toast.success('Lozinka je promenjena! 🏀')
     setTimeout(() => router.push('/'), 1500)
   }

@@ -5,7 +5,7 @@ import { Download, X } from 'lucide-react'
 
 // TODO: zameni sa tačnim GitHub owner/repo kad podesiš "latest-build" release
 // (videćeš instrukcije u chat-u — link uvek pokazuje na najnoviji APK).
-const APK_DOWNLOAD_URL = 'https://github.com/Chevu13/crosscourt-android/releases/download/latest-build/app-debug.apk'
+const APK_DOWNLOAD_URL = 'https://github.com/Chevu13/crosscourt-android/releases/latest/download/CrossCourt.apk'
 
 const DISMISS_KEY = 'cc_android_banner_dismissed'
 
